@@ -1,0 +1,12 @@
+{
+  "db": {
+    "driver": "postgres",
+    "url": "host=localhost user=postgres password=popa dbname=courses sslmode=disable"
+  },
+
+  "server": {
+    "host": "localhost",
+    "port": 8090
+  }
+
+}
