@@ -6,6 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/alexxxPopa/courses/models"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"github.com/alexxxPopa/courses/api"
 )
 
 type Connection struct {
@@ -17,8 +18,22 @@ func (conn *Connection) Close() error {
 }
 
 func (conn *Connection) Migrate() error {
-	conn.db = conn.db.AutoMigrate(&models.User{}, &models.Adress{})
+	//conn.db.DropTable(&models.User{}, &models.Plan{}, &models.Subscription{})
+	conn.db = conn.db.AutoMigrate(&models.User{}, &models.Plan{}, &models.Subscription{})
 	return conn.db.Error
+}
+
+func (conn *Connection) FindPlans() ([]api.PlanInfo, error) {
+	var plans [] api.PlanInfo
+
+	rows,_:= conn.db.Model(&models.Plan{}).
+	Select("tile, amount").Rows()
+
+	for rows.Next() {
+		append(plans, api.PlanInfo{})
+	}
+
+return nil, nil
 }
 
 func Connect(config *conf.Config) (*Connection, error) {

@@ -24,6 +24,8 @@ func Create(config *conf.Config) *API{
 	}
 	e := echo.New()
 
+	e.GET("/",api.Index)
+
 	api.echo = e
 
 	return api
