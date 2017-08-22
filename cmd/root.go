@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"github.com/alexxxPopa/courses/conf"
-
 	"github.com/alexxxPopa/courses/api"
 )
 

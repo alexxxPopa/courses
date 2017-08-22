@@ -1,12 +1,17 @@
 package api
 
-import "github.com/labstack/echo"
+import (
+	"github.com/labstack/echo"
+	"net/http"
+)
 
-type PlanInfo struct {
-	title string
-	amount int32
-}
 
-func (api *API) Index(ctx echo.Context) error {
-	//plans  := api.conn.db
+func (api *API) Index(context echo.Context) error {
+	plans,err  := api.conn.FindPlans()
+
+	if err != nil {
+		return context.JSON(http.StatusUnprocessableEntity, err)
+	}
+
+	return context.JSON(http.StatusOK, plans)
 }

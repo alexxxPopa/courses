@@ -5,7 +5,6 @@ import (
 	"github.com/alexxxPopa/courses/conf"
 	"github.com/spf13/viper"
 	"github.com/sirupsen/logrus"
-
 	"github.com/alexxxPopa/courses/storage/sql"
 )
 

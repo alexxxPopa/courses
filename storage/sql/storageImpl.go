@@ -17,11 +17,11 @@ func (conn *Connection) Close() error {
 }
 
 func (conn *Connection) Migrate() error {
-	conn.db = conn.db.AutoMigrate(&models.User{}, &models.Adress{})
+	//conn.db = conn.db.AutoMigrate(&models.User{}, &models.Plan{}, models.Subscription{}) / Drop tables than recreate them
 	return conn.db.Error
 }
 
-func (conn *Connection) FindUserByEmail(email string) (*models.User, error ){
+func (conn *Connection) FindUserByEmail(email string) (*models.User, error) {
 	return conn.findUser("email = ?", email)
 }
 
@@ -42,6 +42,24 @@ func (conn *Connection) findUser(query string, args ...interface{}) (*models.Use
 		return nil, userExists.Error
 	}
 	return user, nil
+}
+
+func (conn *Connection) FindPlans() ([]*models.PlanInfo, error) {
+	plans := []*models.PlanInfo{}
+
+	rows, _ := conn.db.Model(&models.Plan{}).
+		Select("tile, amount").Rows()
+
+	for rows.Next() {
+		plan := &models.PlanInfo{}
+		err := rows.Scan(&plan.Title, &plan.Amount)
+		if err != nil {
+			return nil, err
+		}
+		plans = append(plans, plan)
+	}
+
+	return plans, nil
 }
 
 func Connect(config *conf.Config) (*Connection, error) {

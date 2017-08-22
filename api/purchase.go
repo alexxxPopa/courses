@@ -13,6 +13,6 @@ func (api *API) Purchase(context echo.Context) error {
 	if err := context.Bind(purchaseParams); err != nil {
 		return err
 	}
-
+return nil
 
 }
