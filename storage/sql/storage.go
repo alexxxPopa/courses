@@ -26,14 +26,19 @@ func (conn *Connection) Migrate() error {
 func (conn *Connection) FindPlans() ([]api.PlanInfo, error) {
 	var plans [] api.PlanInfo
 
-	rows,_:= conn.db.Model(&models.Plan{}).
-	Select("tile, amount").Rows()
+	rows, _ := conn.db.Model(&models.Plan{}).
+		Select("tile, amount").Rows()
 
 	for rows.Next() {
-		append(plans, api.PlanInfo{})
+		plan := api.PlanInfo{}
+		err := rows.Scan(plan)
+		if err != nil {
+			return nil, err
+		}
+		plans = append(plans, plan)
 	}
 
-return nil, nil
+	return plans, nil
 }
 
 func Connect(config *conf.Config) (*Connection, error) {

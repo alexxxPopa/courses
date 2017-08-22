@@ -7,6 +7,6 @@ type PlanInfo struct {
 	amount int32
 }
 
-func (*API) Index(ctx echo.Context) error {
-	plans  :=
+func (api *API) Index(ctx echo.Context) error {
+	//plans  := api.conn.db
 }
