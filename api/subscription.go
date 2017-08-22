@@ -6,11 +6,13 @@ import (
 	"github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/customer"
 	"net/http"
+	"github.com/stripe/stripe-go/charge"
 )
 
 type SubscriptionParams struct {
-	Email  string
-	PlanId uint
+	email  string
+	planId uint
+	token  string
 }
 
 func (api *API) Subscription(context echo.Context) error {
@@ -22,27 +24,39 @@ func (api *API) Subscription(context echo.Context) error {
 
 	user := &models.User{}
 	//TODO better error handling
-	if _, err := api.conn.FindUserByEmail(subscriptionParams.Email); err != nil {
+	if user, err := api.conn.FindUserByEmail(subscriptionParams.email); err != nil {
 
 		user = &models.User{
-			Email: subscriptionParams.Email,
+			Email: subscriptionParams.email,
 		}
 		stripeCustomer, _ := customer.New(&stripe.CustomerParams{
-			Email: subscriptionParams.Email,
+			Email: subscriptionParams.email,
 			//TODO create Stripe user(what should i send to Stripe And what should i return to the frontEnd in both scenarios)
 		})
 		user.Stripe_Id = stripeCustomer.ID
 		api.conn.CreateUser(user)
 	}
 	plan := &models.Plan{}
-	plan, _ = api.conn.FindPlanById(subscriptionParams.PlanId)
+	plan, _ = api.conn.FindPlanById(subscriptionParams.planId)
 
 	subscription := &models.Subscription{
 		PlanID: plan.ID,
 		UserID: user.ID,
-		Amount: plan.Amount,
 	}
 	//TODO Add subscription expiration if that is the case
+	params := &stripe.ChargeParams{
+		Email:    user.Email,
+		Amount:   plan.Amount,
+		Currency: "usd",
+	}
+
+	params.SetSource(subscriptionParams.token)
+	payout, err := charge.New(params)
+	if err != nil {
+		return err
+	}
+	subscription.Amount = payout.Amount
+	//TODO should we save card information
 
 	if err := api.conn.CreateSubscription(subscription); err != nil {
 		return err
@@ -52,5 +66,4 @@ func (api *API) Subscription(context echo.Context) error {
 	api.conn.UpdateUser(user)
 
 	return context.JSON(http.StatusOK, &subscription) //TODO maybe return something different
-
 }

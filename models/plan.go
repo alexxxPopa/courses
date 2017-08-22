@@ -10,7 +10,7 @@ type PlanInfo struct {
 type Plan struct {
 	ID  uint `json:"plan_id" gorm:"primary_key"`
 	Title string `json:"name"`
-	Amount int32 `json:"amount"`
+	Amount uint64 `json:"amount"`
 
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`
