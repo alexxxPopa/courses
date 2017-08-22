@@ -14,5 +14,5 @@ func (api *API) Purchase(context echo.Context) error {
 		return err
 	}
 
-
+	stripe.
 }

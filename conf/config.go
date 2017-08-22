@@ -20,6 +20,8 @@ type Config struct {
 		Host string `json:"host"`
 		Port int    `json:"port"`
 	}
+
+	//TODO add Stripe configuration
 }
 
 func LoadConfig(cmd *cobra.Command) (*Config, error) {
