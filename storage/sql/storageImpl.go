@@ -44,6 +44,24 @@ func (conn *Connection) findUser(query string, args ...interface{}) (*models.Use
 	return user, nil
 }
 
+func (conn *Connection) UpdateUser(user *models.User) error {
+	tx := conn.db.Begin()
+	if err := tx.Save(user).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	tx.Commit()
+	return nil
+}
+
+func (conn *Connection) FindPlanById(planId uint) (*models.Plan, error) {
+	plan := &models.Plan{}
+	if err := conn.db.Model(&models.Plan{}).First(plan, "planId = ?", planId); err != nil {
+		return nil, err.Error
+	}
+	return plan, nil
+}
+
 func (conn *Connection) FindPlans() ([]*models.PlanInfo, error) {
 	plans := []*models.PlanInfo{}
 
@@ -60,6 +78,16 @@ func (conn *Connection) FindPlans() ([]*models.PlanInfo, error) {
 	}
 
 	return plans, nil
+}
+
+func (conn *Connection) CreateSubscription(subscription *models.Subscription) error{
+	tx := conn.db.Begin()
+	if err := tx.Create(subscription).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	tx.Commit()
+	return nil
 }
 
 func Connect(config *conf.Config) (*Connection, error) {

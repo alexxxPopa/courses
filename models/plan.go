@@ -8,8 +8,7 @@ type PlanInfo struct {
 }
 
 type Plan struct {
-	ID  string `json:"plan_id"`
-	Stripe_Id int32 `json:"stripe_id"`
+	ID  uint `json:"plan_id" gorm:"primary_key"`
 	Title string `json:"name"`
 	Amount int32 `json:"amount"`
 

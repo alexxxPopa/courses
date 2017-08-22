@@ -31,7 +31,7 @@ func Create(config *conf.Config) *API {
 
 	e := echo.New()
 
-	e.POST("/login", api.Login)
+	e.POST("/login", api.Subscription)
 	e.GET("/", api.Index)
 
 	api.echo = e
