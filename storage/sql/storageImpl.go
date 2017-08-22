@@ -17,7 +17,7 @@ func (conn *Connection) Close() error {
 }
 
 func (conn *Connection) Migrate() error {
-	//conn.db = conn.db.AutoMigrate(&models.User{}, &models.Plan{}, models.Subscription{}) / Drop tables than recreate them
+	//conn.db = conn.db.AutoMigrate(&models.User{}, &models.Plan{}, models.Subscription{}) // Drop tables than recreate them
 	return conn.db.Error
 }
 

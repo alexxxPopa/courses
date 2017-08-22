@@ -9,7 +9,7 @@ import (
 )
 
 type SubscriptionParams struct {
-	Email string
+	Email  string
 	PlanId uint
 }
 
@@ -27,29 +27,30 @@ func (api *API) Subscription(context echo.Context) error {
 		user = &models.User{
 			Email: subscriptionParams.Email,
 		}
-		stripeCustomer,_ := customer.New(&stripe.CustomerParams{
+		stripeCustomer, _ := customer.New(&stripe.CustomerParams{
 			Email: subscriptionParams.Email,
 			//TODO create Stripe user(what should i send to Stripe And what should i return to the frontEnd in both scenarios)
 		})
 		user.Stripe_Id = stripeCustomer.ID
 		api.conn.CreateUser(user)
 	}
-		plan := &models.Plan{}
-		plan,_ = api.conn.FindPlanById(subscriptionParams.PlanId)
+	plan := &models.Plan{}
+	plan, _ = api.conn.FindPlanById(subscriptionParams.PlanId)
 
-		subscription := &models.Subscription{
-			PlanID: plan.ID,
-			UserID: user.ID,
-		}
-		//TODO Add subscription expiration if that is the case
+	subscription := &models.Subscription{
+		PlanID: plan.ID,
+		UserID: user.ID,
+		Amount: plan.Amount,
+	}
+	//TODO Add subscription expiration if that is the case
 
-		if err:= api.conn.CreateSubscription(subscription); err!=nil {
-			return err
-		}
+	if err := api.conn.CreateSubscription(subscription); err != nil {
+		return err
+	}
 
-		user.PlanID = plan.ID
-		api.conn.UpdateUser(user)
+	user.PlanID = plan.ID
+	api.conn.UpdateUser(user)
 
-		return context.JSON(http.StatusOK, &subscription) //TODO maybe return something different
+	return context.JSON(http.StatusOK, &subscription) //TODO maybe return something different
 
 }
