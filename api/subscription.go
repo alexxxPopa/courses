@@ -22,10 +22,9 @@ func (api *API) Subscription(context echo.Context) error {
 		return err
 	}
 
-	user := &models.User{}
 	//TODO better error handling
-	if user, err := api.conn.FindUserByEmail(subscriptionParams.email); err != nil {
-
+	user, err := api.conn.FindUserByEmail(subscriptionParams.email)
+	if err != nil {
 		user = &models.User{
 			Email: subscriptionParams.email,
 		}
