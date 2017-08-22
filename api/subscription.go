@@ -30,8 +30,8 @@ func (api *API) Subscription(context echo.Context) error {
 		}
 		stripeCustomer, _ := customer.New(&stripe.CustomerParams{
 			Email: subscriptionParams.email,
-			//TODO create Stripe user(what should i send to Stripe And what should i return to the frontEnd in both scenarios)
 		})
+		//TODO should token also be set on stripe user creation??
 		user.Stripe_Id = stripeCustomer.ID
 		api.conn.CreateUser(user)
 	}
