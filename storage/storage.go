@@ -11,6 +11,7 @@ type Connection interface {
 	FindUserByEmail(email string) (*models.User, error)
 	UpdateUser(user *models.User) error
 	FindPlans() ([]*models.PlanInfo, error)
-	FindPlanById(planId uint) (*models.Plan, error)
+	FindPlanById(planId string) (*models.Plan, error)
 	CreateSubscription(subscription *models.Subscription) error
+	CreatePlan(plan *models.Plan) error
 }

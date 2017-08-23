@@ -6,55 +6,79 @@ import (
 	"github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/customer"
 	"net/http"
-	"github.com/stripe/stripe-go/charge"
+//	"github.com/stripe/stripe-go/charge"
+	"fmt"
+	//"github.com/stripe/stripe-go/payout"
+	"github.com/stripe/stripe-go/sub"
 )
 
 type SubscriptionParams struct {
-	email  string
-	planId uint
-	token  string
+	Email  string
+	PlanId string
+	Token  string
 }
 
 func (api *API) Subscription(context echo.Context) error {
+	stripe.Key = api.config.STRIPE.Secret_Key
 
 	subscriptionParams := &SubscriptionParams{}
 	if err := context.Bind(subscriptionParams); err != nil {
 		return err
 	}
-
 	//TODO better error handling
-	user, err := api.conn.FindUserByEmail(subscriptionParams.email)
+	user, err := api.conn.FindUserByEmail(subscriptionParams.Email)
 	if err != nil {
 		user = &models.User{
-			Email: subscriptionParams.email,
+			Email: subscriptionParams.Email,
 		}
-		stripeCustomer, _ := customer.New(&stripe.CustomerParams{
-			Email: subscriptionParams.email,
-		})
+		stripeCustomerParams := &stripe.CustomerParams{
+			Email: subscriptionParams.Email,
+		}
+		stripeCustomerParams.SetSource(subscriptionParams.Token)
+		stripeCustomer, err := customer.New(stripeCustomerParams)
+		if err!=nil {
+			return err
+		}
 		//TODO should token also be set on stripe user creation??
 		user.Stripe_Id = stripeCustomer.ID
 		api.conn.CreateUser(user)
 	}
-	plan := &models.Plan{}
-	plan, _ = api.conn.FindPlanById(subscriptionParams.planId)
+	plan, err := api.conn.FindPlanById(subscriptionParams.PlanId)
 
+	if err !=nil{
+		fmt.Println(err)
+	}
+
+	//TODO Add subscription expiration if that is the case
 	subscription := &models.Subscription{
 		PlanID: plan.ID,
 		UserID: user.ID,
 	}
-	//TODO Add subscription expiration if that is the case
-	params := &stripe.ChargeParams{
-		Email:    user.Email,
-		Amount:   plan.Amount,
-		Currency: "usd",
+
+	//chargeParams := &stripe.ChargeParams{
+	//	Email:    user.Email,
+	//	Amount:   plan.Amount,
+	//	Customer: user.Stripe_Id,
+	//	Currency: "usd",
+	//}
+	//
+	//payout, err := charge.New(chargeParams)
+	chargeParams:=&stripe.SubParams{
+		Customer: user.Stripe_Id,
+		Items:[]*stripe.SubItemsParams{
+			{
+			Plan:plan.ID,
+			},
+		},
 	}
 
-	params.SetSource(subscriptionParams.token)
-	payout, err := charge.New(params)
+	stripeSub, err := sub.New(chargeParams)
 	if err != nil {
 		return err
 	}
-	subscription.Amount = payout.Amount
+	fmt.Println(stripeSub)
+	subscription.Amount = plan.Amount
+	subscription.StripeId = stripeSub.ID
 	//TODO should we save card information
 
 	if err := api.conn.CreateSubscription(subscription); err != nil {

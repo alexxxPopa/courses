@@ -5,7 +5,7 @@ import "time"
 type User struct {
 	ID    uint `json:"user_id" gorm:"primary_key"`
 	Email string `json:"email"`
-	PlanID  uint `json:"plan_id" gorm:"ForeignKey:PlanID"`
+	PlanID  string `json:"plan_id" gorm:"ForeignKey:PlanID"`
 	Stripe_Id string `json:"stripe_id"`
 
 	CreatedAt time.Time  `json:"created_at"`

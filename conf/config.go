@@ -20,6 +20,18 @@ type Config struct {
 		Host string `json:"host"`
 		Port int    `json:"port"`
 	}
+
+	STRIPE struct {
+		Publishable_Key string `json:"publishable_key"`
+		Secret_Key string `json:"secret_key"`
+	}
+}
+
+func LoadTestConfig(path string) (*Config, error) {
+	cmd := &cobra.Command{}
+	cmd.Flags().StringVar(&ConfigFile, "config", path, "Config file")
+
+	return LoadConfig(cmd)
 }
 
 func LoadConfig(cmd *cobra.Command) (*Config, error) {

@@ -17,7 +17,8 @@ func (conn *Connection) Close() error {
 }
 
 func (conn *Connection) Migrate() error {
-	//conn.db = conn.db.AutoMigrate(&models.User{}, &models.Plan{}, models.Subscription{}) // Drop tables than recreate them
+	conn.db.DropTable(&models.User{}, &models.Plan{}, &models.Subscription{})// for testing purposes
+	conn.db = conn.db.AutoMigrate(&models.User{}, &models.Plan{}, &models.Subscription{})
 	return conn.db.Error
 }
 
@@ -54,10 +55,10 @@ func (conn *Connection) UpdateUser(user *models.User) error {
 	return nil
 }
 
-func (conn *Connection) FindPlanById(planId uint) (*models.Plan, error) {
+func (conn *Connection) FindPlanById(planId string) (*models.Plan, error) {
 	plan := &models.Plan{}
-	if err := conn.db.Model(&models.Plan{}).First(plan, "planId = ?", planId); err != nil {
-		return nil, err.Error
+	if planExists := conn.db.Model(&models.Plan{}).First(plan, "id = ?", planId); planExists.Error != nil {
+		return nil, planExists.Error
 	}
 	return plan, nil
 }
@@ -78,6 +79,16 @@ func (conn *Connection) FindPlans() ([]*models.PlanInfo, error) {
 	}
 
 	return plans, nil
+}
+
+func (conn *Connection) CreatePlan(plan *models.Plan) error {
+	tx := conn.db.Begin()
+	if err := tx.Create(plan).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	tx.Commit()
+	return nil
 }
 
 func (conn *Connection) CreateSubscription(subscription *models.Subscription) error{

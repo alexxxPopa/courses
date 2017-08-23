@@ -26,12 +26,14 @@ func Create(config *conf.Config) *API {
 		config: config,
 	}
 	conn, _ := sql.Connect(config);
-	defer conn.Close()
+	//defer conn.Close()
 	api.conn = conn
 
 	e := echo.New()
 
-	e.POST("/login", api.Subscription)
+	e.POST("/updatePlan", api.UpdatePlan)
+	e.POST ("/createPlan", api.CreatePlan)
+	e.POST("/subscription", api.Subscription)
 	e.GET("/", api.Index)
 
 	api.echo = e
