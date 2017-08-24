@@ -17,18 +17,18 @@ type UpdateSubscriptionParams struct {
 func (api *API) UpdateSubscription(context echo.Context) error {
 	stripe.Key = api.config.STRIPE.Secret_Key
 
-	updateSubscriptionParams := &UpdateSubscriptionParams{}
-	if err := context.Bind(updateSubscriptionParams); err != nil {
+	updateParams := &UpdateSubscriptionParams{}
+	if err := context.Bind(updateParams); err != nil {
 		return err
 	}
 
-	p, err := api.conn.FindPlanById(updateSubscriptionParams.PlanId)
+	p, err := api.conn.FindPlanById(updateParams.PlanId)
 
 	if err != nil {
 		return err
 	}
 
-	user, err := api.conn.FindUserByEmail(updateSubscriptionParams.Email)
+	user, err := api.conn.FindUserByEmail(updateParams.Email)
 
 	subscription, err := api.conn.FindSubscriptionByUser(user)
 
