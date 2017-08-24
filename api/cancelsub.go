@@ -4,7 +4,9 @@ import (
 	"github.com/labstack/echo"
 	"github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/sub"
-	)
+
+	"fmt"
+)
 
 type CancelSubscriptionParams struct {
 	Email  string
@@ -36,5 +38,6 @@ func (api *API) CancelSubscription(context echo.Context) error {
 		},
 	)
 
-	return nil
+	fmt.Println(s)
+	return err
 }

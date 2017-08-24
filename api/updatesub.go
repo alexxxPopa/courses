@@ -36,11 +36,14 @@ func (api *API) UpdateSubscription(context echo.Context) error {
 		return nil
 	}
 
+	stripeSub, err := sub.Get(subscription.StripeId, nil)
+	itemId:= stripeSub.Items.Values[0].ID
+
 	s, err := sub.Update(subscription.StripeId,
 	&stripe.SubParams{
-		NoProrate:false,
 		Items:[]*stripe.SubItemsParams{
 			{
+				ID:itemId,
 				Plan:p.PlanId,
 			},
 		},

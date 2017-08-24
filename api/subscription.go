@@ -80,6 +80,10 @@ func (api *API) Subscription(context echo.Context) error {
 	if err != nil {
 		return err
 	}
+
+	//Check invoice
+
+
 	fmt.Println(stripeSub)
 	subscription.Amount = plan.Amount
 	subscription.StripeId = stripeSub.ID
