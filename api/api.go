@@ -33,7 +33,10 @@ func Create(config *conf.Config) *API {
 
 	e.POST("/updatePlan", api.UpdatePlan)
 	e.POST ("/createPlan", api.CreatePlan)
+	e.DELETE("/deletePlan",api.DeletePlan)
+
 	e.POST("/subscription", api.Subscription)
+	e.POST("/updateSubscription", api.UpdateSubscription)
 	e.GET("/", api.Index)
 
 	api.echo = e

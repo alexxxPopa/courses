@@ -10,8 +10,10 @@ import (
 	"github.com/stripe/stripe-go/token"
 	"fmt"
 	"github.com/labstack/echo"
-	"strings"
 	//"github.com/alexxxPopa/courses/models"
+//	"strings"
+//	"strings"
+	"strings"
 )
 
 type SubscriptionTestSuite struct {
@@ -28,22 +30,44 @@ func (ts *SubscriptionTestSuite) SetupTest() {
 	stripe.Key = config.STRIPE.Publishable_Key
 }
 
-func (ts *SubscriptionTestSuite) TestSubscription() {
+//func (ts *SubscriptionTestSuite) TestSubscription() {
+//
+//	t, err := obtainStripeVerificationToke()
+//	require.NoError(ts.T(), err)
+//
+//	userJSON := `{"email":"popa.popa@mbitcasino.com","planId":"silver-month","token":` + `"` + t.ID + `"` + `}`
+//
+//	rec := ts.API.NewRequest(echo.POST, "http://localhost:8090/subscription", strings.NewReader(userJSON))
+//
+//	fmt.Println(rec)
+//}
 
-	t, err := obtainStripeVerificationToke()
-	require.NoError(ts.T(), err)
+func (ts *SubscriptionTestSuite) TestUpdateSubscription() {
 
-	userJSON := `{"email":"alexalexalex.popa@mbitcasino.com","planId":"gold-month","token":` + `"` + t.ID + `"` + `}`
-
-	rec := ts.API.NewRequest(echo.POST, "http://localhost:8090/subscription", strings.NewReader(userJSON))
+	userJSON := `{"email":"popa.popa@mbitcasino.com","planId":"gold-month"}`
+	rec := ts.API.NewRequest(echo.POST, "http://localhost:8090/updateSubscription", strings.NewReader(userJSON))
 
 	fmt.Println(rec)
 
 }
+//
+//func (ts *SubscriptionTestSuite) TestPlanUpdate() {
+//	userJSON := `{"id":"silver-month","name":"silver","interval":"month","amount":10000}`
+//	rec := ts.API.NewRequest(echo.POST, "http://localhost:8090/updatePlan", strings.NewReader(userJSON))
+//
+//	fmt.Println(rec)
+//}
 
-//func (ts *SubscriptionTestSuite) TestCreateSubscription() {
-//	userJSON := `{"title":"gold","interval":"month","currency":"usd","amount":10000}`
-//	rec := ts.API.NewRequest(echo.POST, "http://localhost:8090/create", strings.NewReader(userJSON))
+//func (ts *SubscriptionTestSuite) TestPlanDelete() {
+//
+//	//userJSON := `{"id":"gold-month"}`
+//	rec := ts.API.NewRequest(echo.DELETE, "http://localhost:8090/deletePlan?ID=silver-month", nil)
+//	fmt.Println(rec)
+//}
+
+//func (ts *SubscriptionTestSuite) TestCreatePlan() {
+//	userJSON := `{"title":"gold","interval":"month","currency":"usd","amount":20000}`
+//	rec := ts.API.NewRequest(echo.POST, "http://localhost:8090/createPlan", strings.NewReader(userJSON))
 //
 //	fmt.Println(rec)
 //}
