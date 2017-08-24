@@ -49,6 +49,13 @@ func (ts *SubscriptionTestSuite) SetupTest() {
 //	fmt.Println(rec)
 //
 //}
+
+func (ts *SubscriptionTestSuite) TestCancelSubscription() {
+	userJSON := `{"email":"popa.popa@mbitcasino.com","planId":"gold-month"}`
+	rec := ts.API.NewRequest(echo.POST, "http://localhost:8090/cancelSubscription", strings.NewReader(userJSON))
+
+	fmt.Println(rec)
+}
 //
 //func (ts *SubscriptionTestSuite) TestPlanUpdate() {
 //	userJSON := `{"id":"silver-month","name":"silver","interval":"month","amount":10000}`
@@ -64,12 +71,12 @@ func (ts *SubscriptionTestSuite) SetupTest() {
 //	fmt.Println(rec)
 //}
 
-func (ts *SubscriptionTestSuite) TestCreatePlan() {
-	userJSON := `{"title":"bronze","interval":"sss","currency":"usd","amount":500}`
-	rec := ts.API.NewRequest(echo.POST, "http://localhost:8090/createPlan", strings.NewReader(userJSON))
-
-	fmt.Println(rec)
-}
+//func (ts *SubscriptionTestSuite) TestCreatePlan() {
+//	userJSON := `{"title":"bronze","interval":"sss","currency":"usd","amount":500}`
+//	rec := ts.API.NewRequest(echo.POST, "http://localhost:8090/createPlan", strings.NewReader(userJSON))
+//
+//	fmt.Println(rec)
+//}
 
 func obtainStripeVerificationToke() (*stripe.Token, error) {
 

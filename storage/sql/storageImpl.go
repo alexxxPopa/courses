@@ -132,6 +132,16 @@ func (conn *Connection) FindSubscriptionByUser(user *models.User) (*models.Subsc
 	return s, nil
 }
 
+func(conn *Connection) UpdateSubscription(subscription *models.Subscription) error {
+	tx := conn.db.Begin()
+	if err := tx.Save(subscription).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	tx.Commit()
+	return nil
+}
+
 func Connect(config *conf.Config) (*Connection, error) {
 	db, err := gorm.Open(config.DB.Driver, config.DB.Url)
 

@@ -14,6 +14,7 @@ type Connection interface {
 	FindPlanById(planId string) (*models.Plan, error)
 	FindSubscriptionByUser(user *models.User) (*models.Subscription,error)
 	CreateSubscription(subscription *models.Subscription) error
+	UpdateSubscription(subscription *models.Subscription) error
 	CreatePlan(plan *models.Plan) error
 	UpdatePlan(plan *models.Plan) error
 	DeletePlan(plan *models.Plan) error

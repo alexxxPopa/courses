@@ -37,6 +37,9 @@ func (api *API) CancelSubscription(context echo.Context) error {
 			EndCancel: true,
 		},
 	)
+	//TODO change to status only at event
+	//subscription.Type = "Canceled"
+	//api.conn.UpdateSubscription(subscription)
 
 	fmt.Println(s)
 	return err
