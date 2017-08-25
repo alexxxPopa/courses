@@ -38,6 +38,7 @@ func Create(config *conf.Config) *API {
 	e.POST("/subscription", api.Subscription)
 	e.POST("/updateSubscription", api.UpdateSubscription)
 	e.POST("/cancelSubscription", api.CancelSubscription)
+	e.POST("/event", api.Event)
 	e.GET("/", api.Index)
 
 	api.echo = e

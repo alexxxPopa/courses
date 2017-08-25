@@ -87,6 +87,7 @@ func (api *API) Subscription(context echo.Context) error {
 	fmt.Println(stripeSub)
 	subscription.Amount = plan.Amount
 	subscription.StripeId = stripeSub.ID
+	subscription.PeriodEnd = stripeSub.PeriodEnd
 	subscription.Type = ACTIVE
 	//TODO should we save card information
 
