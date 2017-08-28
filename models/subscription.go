@@ -8,7 +8,7 @@ type Subscription struct {
 	PlanId         string `json:"plan_id"`
 	StripeId       string `json:"stripe_id"`
 	Status         string `json:"status"`
-	Amount         uint64 `json:"amount"`
+	Amount         float64 `json:"amount"`
 	Currency       string `json:"string"`
 	PeriodStart    float64 `json:"period_start"`
 	PeriodEnd      float64 `json:"period_end"`

@@ -67,8 +67,11 @@ func (api *API) Event(context echo.Context) error {
 		activeSubscription.Status = Expired
 		api.conn.UpdateSubscription(activeSubscription)
 	case UpdateEvent:
+		//TODO When should the updated Subscription be billed --> at the time of the switch or at the end of previous subscription?
 		activeSubscription, _ := api.conn.FindSubscriptionByUser(user, Active)
-		//update planId and amount
+		eventItem := getEventData(event.Data.Obj)
+		activeSubscription.Amount = eventItem.amount
+		activeSubscription.PlanId = eventItem.planId
 		api.conn.UpdateSubscription(activeSubscription)
 	}
 
@@ -83,7 +86,7 @@ func handleInvoiceCreated(api *API, eventData map[string]interface{}, userId uin
 		PlanId:      eventItem.planId,
 		StripeId:    eventItem.stripeId,
 		Status:      Pending,
-		Amount:      uint64(eventItem.amount),
+		Amount:      eventItem.amount,
 		Currency:    eventItem.currency,
 		PeriodStart: eventItem.periodStart,
 		PeriodEnd:   eventItem.periodEnd,
