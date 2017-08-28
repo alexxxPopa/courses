@@ -29,26 +29,26 @@ func (ts *SubscriptionTestSuite) SetupTest() {
 	stripe.Key = config.STRIPE.Publishable_Key
 }
 
-func (ts *SubscriptionTestSuite) TestSubscription() {
-
-	t, err := obtainStripeVerificationToke()
-	require.NoError(ts.T(), err)
-
-	userJSON := `{"email":"popa.popa@mbitcasino.com","planId":"bronze-month","token":` + `"` + t.ID + `"` + `}`
-
-	rec := ts.API.NewRequest(echo.POST, "http://localhost:8090/subscription", strings.NewReader(userJSON))
-
-	fmt.Println(rec)
-}
-
-//func (ts *SubscriptionTestSuite) TestUpdateSubscription() {
+//func (ts *SubscriptionTestSuite) TestSubscription() {
 //
-//	userJSON := `{"email":"popa.popa@mbitcasino.com","planId":"gold-month"}`
-//	rec := ts.API.NewRequest(echo.POST, "http://localhost:8090/updateSubscription", strings.NewReader(userJSON))
+//	t, err := obtainStripeVerificationToke()
+//	require.NoError(ts.T(), err)
+//
+//	userJSON := `{"email":"alex.alex@mbitcasino.com","planId":"silver-month","token":` + `"` + t.ID + `"` + `}`
+//
+//	rec := ts.API.NewRequest(echo.POST, "http://localhost:8090/subscription", strings.NewReader(userJSON))
 //
 //	fmt.Println(rec)
-//
 //}
+//
+func (ts *SubscriptionTestSuite) TestUpdateSubscription() {
+
+	userJSON := `{"email":"alex.alex@mbitcasino.com","planId":"gold-month"}`
+	rec := ts.API.NewRequest(echo.POST, "http://localhost:8090/updateSubscription", strings.NewReader(userJSON))
+
+	fmt.Println(rec)
+
+}
 
 //func (ts *SubscriptionTestSuite) TestCancelSubscription() {
 //	userJSON := `{"email":"popa.popa@mbitcasino.com","planId":"gold-month"}`
@@ -72,7 +72,7 @@ func (ts *SubscriptionTestSuite) TestSubscription() {
 //}
 
 //func (ts *SubscriptionTestSuite) TestCreatePlan() {
-//	userJSON := `{"title":"bronze","interval":"month","currency":"usd","amount":500}`
+//	userJSON := `{"title":"gold","interval":"month","currency":"usd","amount":10000}`
 //	rec := ts.API.NewRequest(echo.POST, "http://localhost:8090/createPlan", strings.NewReader(userJSON))
 //
 //	fmt.Println(rec)

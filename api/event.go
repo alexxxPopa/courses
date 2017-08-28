@@ -12,6 +12,7 @@ const (
 	InvoiceSucceeded = "invoice.payment.succeded"
 	InvoiceFailed    = "invoice.payment_failed"
 	CancelEvent      = "customer.subscription.deleted"
+	UpdateEvent      = "customer.subscription.updated"
 	Pending          = "Pending"
 	Failed           = "Failed"
 	Active           = "Active"

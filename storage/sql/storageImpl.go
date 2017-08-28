@@ -125,7 +125,7 @@ func (conn *Connection) FindSubscriptionByUser(user *models.User, status string)
 	s := &models.Subscription{}
 	rows, _ := conn.db.Model(&models.Subscription{}).Where("user_id =?", user.UserId).Rows()
 	for rows.Next() {
-		err := rows.Scan(&s.SubscriptionId, &s.UserId, &s.PlanId, s.StripeId, &s.Status, &s.Amount, &s.Currency, &s.PeriodStart, &s.PeriodEnd, &s.CreatedAt, &s.UpdatedAt)
+		err := rows.Scan(&s.SubscriptionId, &s.UserId, &s.PlanId, &s.StripeId, &s.Status, &s.Amount, &s.Currency, &s.PeriodStart, &s.PeriodEnd, &s.CreatedAt, &s.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}

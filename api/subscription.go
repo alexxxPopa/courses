@@ -52,10 +52,10 @@ func (api *API) Subscription(context echo.Context) error {
 	//TODO should not have let subscribe for already subscribed subscription
 
 	//TODO Add subscription expiration if that is the case
-	//subscription := &models.Subscription{
-	//	PlanId: plan.PlanId,
-	//	UserId: user.UserId,
-	//}
+	subscription := &models.Subscription{
+		PlanId: plan.PlanId,
+		UserId: user.UserId,
+	}
 
 	//chargeParams := &stripe.ChargeParams{
 	//	Email:    user.Email,
@@ -83,16 +83,16 @@ func (api *API) Subscription(context echo.Context) error {
 
 
 	fmt.Println(stripeSub)
-	//subscription.Amount = plan.Amount
-	//subscription.StripeId = stripeSub.ID
-	//subscription.PeriodEnd = stripeSub.PeriodEnd
-	//subscription.Status = PENDING
+	subscription.Amount = plan.Amount
+	subscription.StripeId = stripeSub.ID
+	subscription.PeriodEnd = float64(stripeSub.PeriodEnd)
+	subscription.Status = Active
 	//TODO should we save card information
 
-	//if err := api.conn.CreateSubscription(subscription); err != nil {
-	//	return err
-	//}
-	//api.conn.UpdateUser(user)
+	if err := api.conn.CreateSubscription(subscription); err != nil {
+		return err
+	}
+	api.conn.UpdateUser(user)
 
 	return context.JSON(http.StatusOK, nil) //TODO maybe return something different
 }
