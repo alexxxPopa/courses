@@ -12,7 +12,7 @@ const (
 	InvoiceSucceeded = "invoice.payment.succeded"
 	InvoiceFailed    = "invoice.payment_failed"
 	CancelEvent      = "customer.subscription.deleted"
-	UpdateEvent      = "customer.subscription.updated"
+	UpdateEvent      = "customer.subscription.updated" //Should i manually generate an invoice so the customer pays at the time of the change switch
 	Pending          = "Pending"
 	Failed           = "Failed"
 	Active           = "Active"
@@ -65,6 +65,10 @@ func (api *API) Event(context echo.Context) error {
 	case CancelEvent:
 		activeSubscription, _ := api.conn.FindSubscriptionByUser(user, Active)
 		activeSubscription.Status = Expired
+		api.conn.UpdateSubscription(activeSubscription)
+	case UpdateEvent:
+		activeSubscription, _ := api.conn.FindSubscriptionByUser(user, Active)
+		//update planId and amount
 		api.conn.UpdateSubscription(activeSubscription)
 	}
 
