@@ -18,8 +18,6 @@ type SubscriptionParams struct {
 	Token  string
 }
 
-const ACTIVE = "Active"
-
 func (api *API) Subscription(context echo.Context) error {
 	stripe.Key = api.config.STRIPE.Secret_Key
 
@@ -54,10 +52,10 @@ func (api *API) Subscription(context echo.Context) error {
 	//TODO should not have let subscribe for already subscribed subscription
 
 	//TODO Add subscription expiration if that is the case
-	subscription := &models.Subscription{
-		PlanId: plan.PlanId,
-		UserId: user.UserId,
-	}
+	//subscription := &models.Subscription{
+	//	PlanId: plan.PlanId,
+	//	UserId: user.UserId,
+	//}
 
 	//chargeParams := &stripe.ChargeParams{
 	//	Email:    user.Email,
@@ -85,16 +83,16 @@ func (api *API) Subscription(context echo.Context) error {
 
 
 	fmt.Println(stripeSub)
-	subscription.Amount = plan.Amount
-	subscription.StripeId = stripeSub.ID
-	subscription.PeriodEnd = stripeSub.PeriodEnd
-	subscription.Type = ACTIVE
+	//subscription.Amount = plan.Amount
+	//subscription.StripeId = stripeSub.ID
+	//subscription.PeriodEnd = stripeSub.PeriodEnd
+	//subscription.Status = PENDING
 	//TODO should we save card information
 
-	if err := api.conn.CreateSubscription(subscription); err != nil {
-		return err
-	}
+	//if err := api.conn.CreateSubscription(subscription); err != nil {
+	//	return err
+	//}
 	//api.conn.UpdateUser(user)
 
-	return context.JSON(http.StatusOK, &subscription) //TODO maybe return something different
+	return context.JSON(http.StatusOK, nil) //TODO maybe return something different
 }

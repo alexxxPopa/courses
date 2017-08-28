@@ -29,17 +29,17 @@ func (ts *SubscriptionTestSuite) SetupTest() {
 	stripe.Key = config.STRIPE.Publishable_Key
 }
 
-//func (ts *SubscriptionTestSuite) TestSubscription() {
-//
-//	t, err := obtainStripeVerificationToke()
-//	require.NoError(ts.T(), err)
-//
-//	userJSON := `{"email":"popa.popa@mbitcasino.com","planId":"silver-month","token":` + `"` + t.ID + `"` + `}`
-//
-//	rec := ts.API.NewRequest(echo.POST, "http://localhost:8090/subscription", strings.NewReader(userJSON))
-//
-//	fmt.Println(rec)
-//}
+func (ts *SubscriptionTestSuite) TestSubscription() {
+
+	t, err := obtainStripeVerificationToke()
+	require.NoError(ts.T(), err)
+
+	userJSON := `{"email":"popa.popa@mbitcasino.com","planId":"bronze-month","token":` + `"` + t.ID + `"` + `}`
+
+	rec := ts.API.NewRequest(echo.POST, "http://localhost:8090/subscription", strings.NewReader(userJSON))
+
+	fmt.Println(rec)
+}
 
 //func (ts *SubscriptionTestSuite) TestUpdateSubscription() {
 //
@@ -50,12 +50,12 @@ func (ts *SubscriptionTestSuite) SetupTest() {
 //
 //}
 
-func (ts *SubscriptionTestSuite) TestCancelSubscription() {
-	userJSON := `{"email":"popa.popa@mbitcasino.com","planId":"gold-month"}`
-	rec := ts.API.NewRequest(echo.POST, "http://localhost:8090/cancelSubscription", strings.NewReader(userJSON))
-
-	fmt.Println(rec)
-}
+//func (ts *SubscriptionTestSuite) TestCancelSubscription() {
+//	userJSON := `{"email":"popa.popa@mbitcasino.com","planId":"gold-month"}`
+//	rec := ts.API.NewRequest(echo.POST, "http://localhost:8090/cancelSubscription", strings.NewReader(userJSON))
+//
+//	fmt.Println(rec)
+//}
 //
 //func (ts *SubscriptionTestSuite) TestPlanUpdate() {
 //	userJSON := `{"id":"silver-month","name":"silver","interval":"month","amount":10000}`
@@ -72,7 +72,7 @@ func (ts *SubscriptionTestSuite) TestCancelSubscription() {
 //}
 
 //func (ts *SubscriptionTestSuite) TestCreatePlan() {
-//	userJSON := `{"title":"bronze","interval":"sss","currency":"usd","amount":500}`
+//	userJSON := `{"title":"bronze","interval":"month","currency":"usd","amount":500}`
 //	rec := ts.API.NewRequest(echo.POST, "http://localhost:8090/createPlan", strings.NewReader(userJSON))
 //
 //	fmt.Println(rec)

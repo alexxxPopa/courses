@@ -26,6 +26,11 @@ func (conn *Connection) FindUserByEmail(email string) (*models.User, error) {
 	return conn.findUser("email = ?", email)
 }
 
+func (conn *Connection) FindUserByStripeId(stripeId string) (*models.User, error) {
+	return conn.findUser("stripe_id = ?", stripeId)
+}
+
+
 func (conn *Connection) CreateUser(user *models.User) error {
 	tx := conn.db.Begin()
 	if err := tx.Create(user).Error; err != nil {
@@ -116,20 +121,20 @@ func (conn *Connection) CreateSubscription(subscription *models.Subscription) er
 	return nil
 }
 
-func (conn *Connection) FindSubscriptionByUser(user *models.User) (*models.Subscription, error) {
+func (conn *Connection) FindSubscriptionByUser(user *models.User, status string) (*models.Subscription, error) {
 	s := &models.Subscription{}
 	rows, _ := conn.db.Model(&models.Subscription{}).Where("user_id =?", user.UserId).Rows()
 	for rows.Next() {
-		err := rows.Scan(&s.SubscriptionId, &s.PlanId, &s.UserId, &s.Amount, &s.StripeId, &s.Type, &s.CreatedAt, &s.UpdatedAt)
+		err := rows.Scan(&s.SubscriptionId, &s.UserId, &s.PlanId, s.StripeId, &s.Status, &s.Amount, &s.Currency, &s.PeriodStart, &s.PeriodEnd, &s.CreatedAt, &s.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
 
-		if s.Type == "Active" {
+		if s.Status == status {
 			return s, nil
 		}
 	}
-	return s, nil
+	return nil, nil
 }
 
 func(conn *Connection) UpdateSubscription(subscription *models.Subscription) error {
