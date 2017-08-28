@@ -8,13 +8,14 @@ import (
 )
 
 const (
-	InvoiceCreated  = "invoice.created"
-	InvoiceSucceded = "invoice.payment.succeded"
-	InvoiceFailed   = "invoice.payment_failed"
-	Pending         = "Pending"
-	Failed          = "Failed"
-	Active          = "Active"
-	Expired         = "Expired"
+	InvoiceCreated   = "invoice.created"
+	InvoiceSucceeded = "invoice.payment.succeded"
+	InvoiceFailed    = "invoice.payment_failed"
+	CancelEvent      = "customer.subscription.deleted"
+	Pending          = "Pending"
+	Failed           = "Failed"
+	Active           = "Active"
+	Expired          = "Expired"
 )
 
 type EventItem struct {
@@ -45,10 +46,6 @@ func (api *API) Event(context echo.Context) error {
 	case InvoiceCreated:
 		return handleInvoiceCreated(api, event.Data.Obj, 123, context)
 	case InvoiceFailed:
-		if activeSubscription, _ := api.conn.FindSubscriptionByUser(user, Active);activeSubscription != nil {
-			activeSubscription.Status = Expired
-			api.conn.UpdateSubscription(activeSubscription)
-		}
 		subscription, err := api.conn.FindSubscriptionByUser(user, Pending)
 		if err != nil {
 			return err
@@ -56,14 +53,18 @@ func (api *API) Event(context echo.Context) error {
 		subscription.Status = Failed
 		api.conn.UpdateSubscription(subscription)
 		return context.JSON(http.StatusOK, nil)
-	case InvoiceSucceded:
-		expiredSubscription,_ := api.conn.FindSubscriptionByUser(user, Active)
+	case InvoiceSucceeded:
+		expiredSubscription, _ := api.conn.FindSubscriptionByUser(user, Active)
 		expiredSubscription.Status = Expired
 		api.conn.UpdateSubscription(expiredSubscription)
-		pendingSubscription,_ := api.conn.FindSubscriptionByUser(user, Pending)
+		pendingSubscription, _ := api.conn.FindSubscriptionByUser(user, Pending)
 		pendingSubscription.Status = Active
 		api.conn.UpdateSubscription(pendingSubscription)
 		return context.JSON(http.StatusOK, nil)
+	case CancelEvent:
+		activeSubscription, _ := api.conn.FindSubscriptionByUser(user, Active)
+		activeSubscription.Status = Expired
+		api.conn.UpdateSubscription(activeSubscription)
 	}
 
 	return nil
@@ -76,7 +77,7 @@ func handleInvoiceCreated(api *API, eventData map[string]interface{}, userId uin
 		UserId:      userId,
 		PlanId:      eventItem.planId,
 		StripeId:    eventItem.stripeId,
-		Status:      PENDING,
+		Status:      Pending,
 		Amount:      uint64(eventItem.amount),
 		Currency:    eventItem.currency,
 		PeriodStart: eventItem.periodStart,

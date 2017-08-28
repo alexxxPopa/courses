@@ -26,7 +26,7 @@ func (api *API) CancelSubscription(context echo.Context) error {
 		return err
 	}
 
-	subscription, err := api.conn.FindSubscriptionByUser(user)
+	subscription, err := api.conn.FindSubscriptionByUser(user, Active)
 	if err != nil {
 		return err
 	}

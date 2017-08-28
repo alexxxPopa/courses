@@ -30,7 +30,7 @@ func (api *API) UpdateSubscription(context echo.Context) error {
 
 	user, err := api.conn.FindUserByEmail(updateParams.Email)
 
-	subscription, err := api.conn.FindSubscriptionByUser(user)
+	subscription, err := api.conn.FindSubscriptionByUser(user, Active)
 
 	if err!=nil {
 		return nil
