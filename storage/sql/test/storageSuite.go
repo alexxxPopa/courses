@@ -154,10 +154,10 @@ func (s *StorageTestSuite) TestUpdateSubscription() {
 }
 
 func (s *StorageTestSuite) TestGetCourses() {
-	course := models.NewCourse("abc", []string {"gold","silver"})
+	course := models.NewCourse("abc",  "silver")
 	err := s.Conn.CreateCourse(course)
 	require.NoError(s.T(), err)
-	secondCourse := models.NewCourse("def", []string {"silver"})
+	secondCourse := models.NewCourse("def",  "silver")
 	err = s.Conn.CreateCourse(secondCourse)
 	require.NoError(s.T(), err)
 
@@ -165,5 +165,5 @@ func (s *StorageTestSuite) TestGetCourses() {
 	require.NoError(s.T(), err)
 
 	assert.Equal(s.T(), 2, len(courses))
-
+	assert.Equal(s.T(), courses[0].Plan, "silver")
 }

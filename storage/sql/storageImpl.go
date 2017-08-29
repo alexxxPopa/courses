@@ -157,13 +157,33 @@ func (conn *Connection) CreateCourse(course *models.Course) error {
 	return nil
 }
 
-func (conn *Connection) GetCourses() ([]*models.Course, error) {
-	courses := []*models.Course{}
+func (conn *Connection) GetCourses() ([]models.Course, error) {
+	courses := &[]models.Course{}
 
 	if err := conn.db.Find(courses).Error; err != nil {
 		return nil, err
 	}
-	return courses, nil
+	return *courses, nil
+}
+
+func (conn *Connection) CreateCategory(category *models.Category) error {
+	tx := conn.db.Begin()
+	if err := tx.Create(category).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	tx.Commit()
+	return nil
+}
+
+func (conn *Connection) CreateArticle(article *models.Article) error {
+	tx := conn.db.Begin()
+	if err := tx.Create(article).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	tx.Commit()
+	return nil
 }
 
 func Connect(config *conf.Config) (*Connection, error) {

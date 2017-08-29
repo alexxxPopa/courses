@@ -31,7 +31,13 @@ func beforeTest() {
 	conn.db.DropTableIfExists(&models.User{})
 	conn.db.DropTableIfExists(&models.Plan{})
 	conn.db.DropTableIfExists(&models.Subscription{})
+	conn.db.DropTableIfExists(&models.Course{})
+	conn.db.DropTableIfExists(&models.Article{})
+	conn.db.DropTableIfExists(&models.Category{})
 	conn.db.CreateTable(&models.User{})
 	conn.db.CreateTable(&models.Plan{})
 	conn.db.CreateTable(&models.Subscription{})
+	conn.db.CreateTable(&models.Course{})
+	conn.db.CreateTable(&models.Article{})
+	conn.db.CreateTable(&models.Category{})
 }
