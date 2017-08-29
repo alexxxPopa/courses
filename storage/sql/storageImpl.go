@@ -147,6 +147,25 @@ func(conn *Connection) UpdateSubscription(subscription *models.Subscription) err
 	return nil
 }
 
+func (conn *Connection) CreateCourse (course *models.Course) error {
+	tx := conn.db.Begin()
+	if err := tx.Create(course).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	tx.Commit()
+	return nil
+}
+
+func (conn *Connection) GetCourses() ([]*models.Course, error) {
+	courses := []*models.Course{}
+
+	if coursesExists := conn.db.Find(courses) ; coursesExists.Error != nil {
+		return nil, coursesExists.Error
+	}
+	return courses, nil
+}
+
 func Connect(config *conf.Config) (*Connection, error) {
 	db, err := gorm.Open(config.DB.Driver, config.DB.Url)
 

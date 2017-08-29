@@ -151,5 +151,19 @@ func (s *StorageTestSuite) TestUpdateSubscription() {
 	updateSub,err := s.Conn.FindSubscriptionByUser(user, "Expired")
 	require.NoError(s.T(), err)
 	assert.Equal(s.T(), sub.Amount, updateSub.Amount)
+}
+
+func (s *StorageTestSuite) TestGetCourses() {
+	course := models.NewCourse("abc", []string {"gold","silver"})
+	err := s.Conn.CreateCourse(course)
+	require.NoError(s.T(), err)
+	secondCourse := models.NewCourse("def", []string {"silver"})
+	err = s.Conn.CreateCourse(secondCourse)
+	require.NoError(s.T(), err)
+
+	courses, err := s.Conn.GetCourses()
+	require.NoError(s.T(), err)
+
+	assert.Equal(s.T(), 2, len(courses))
 
 }
