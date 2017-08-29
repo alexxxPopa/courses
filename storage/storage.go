@@ -11,12 +11,12 @@ type Connection interface {
 	FindUserByEmail(email string) (*models.User, error)
 	FindUserByStripeId(stripeId string) (*models.User, error)
 	UpdateUser(user *models.User) error
-	FindPlans() ([]*models.PlanInfo, error)
-	FindPlanById(planId string) (*models.Plan, error)
-	FindSubscriptionByUser(user *models.User, status string) (*models.Subscription,error)
-	CreateSubscription(subscription *models.Subscription) error
-	UpdateSubscription(subscription *models.Subscription) error
 	CreatePlan(plan *models.Plan) error
 	UpdatePlan(plan *models.Plan) error
-	DeletePlan(plan *models.Plan) error
+	//DeletePlan(plan *models.Plan) error
+	FindPlans() ([]*models.PlanInfo, error)
+	FindPlanByTitle(title string) (*models.Plan, error)
+	CreateSubscription(subscription *models.Subscription) error
+	UpdateSubscription(subscription *models.Subscription) error
+	FindSubscriptionByUser(user *models.User, status string) (*models.Subscription,error)
 }

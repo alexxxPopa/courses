@@ -11,7 +11,7 @@ import (
 
 type UpdateSubscriptionParams struct {
 	Email  string
-	PlanId string
+	Title string
 }
 
 func (api *API) UpdateSubscription(context echo.Context) error {
@@ -22,7 +22,7 @@ func (api *API) UpdateSubscription(context echo.Context) error {
 		return err
 	}
 
-	p, err := api.conn.FindPlanById(updateParams.PlanId)
+	p, err := api.conn.FindPlanByTitle(updateParams.Title)
 
 	if err != nil {
 		return err
@@ -44,7 +44,7 @@ func (api *API) UpdateSubscription(context echo.Context) error {
 		Items:[]*stripe.SubItemsParams{
 			{
 				ID:itemId,
-				Plan:p.PlanId,
+				Plan:p.StripeId,
 			},
 		},
 	})

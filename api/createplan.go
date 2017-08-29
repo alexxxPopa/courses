@@ -39,7 +39,7 @@ func (api *API) CreatePlan(context echo.Context) error {
 	}
 
 	api.conn.CreatePlan(&models.Plan{
-		PlanId:       stripeParams.ID,
+		StripeId: basicPlan.ID,
 		Title:    planParams.Title,
 		Currency: planParams.Currency,
 		Interval: planParams.Interval,

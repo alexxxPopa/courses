@@ -60,9 +60,9 @@ func (conn *Connection) UpdateUser(user *models.User) error {
 	return nil
 }
 
-func (conn *Connection) FindPlanById(planId string) (*models.Plan, error) {
+func (conn *Connection) FindPlanByTitle(title string) (*models.Plan, error) {
 	plan := &models.Plan{}
-	if planExists := conn.db.Model(&models.Plan{}).First(plan, "plan_id = ?", planId); planExists.Error != nil {
+	if planExists := conn.db.Model(&models.Plan{}).First(plan, "title = ?", title); planExists.Error != nil {
 		return nil, planExists.Error
 	}
 	return plan, nil
@@ -72,11 +72,11 @@ func (conn *Connection) FindPlans() ([]*models.PlanInfo, error) {
 	plans := []*models.PlanInfo{}
 
 	rows, _ := conn.db.Model(&models.Plan{}).
-		Select("tile, amount").Rows()
+		Select("title, amount, currency, interval").Rows()
 
 	for rows.Next() {
 		plan := &models.PlanInfo{}
-		err := rows.Scan(&plan.Title, &plan.Amount)
+		err := rows.Scan(&plan.Title, &plan.Amount, &plan.Currency, &plan.Interval)
 		if err != nil {
 			return nil, err
 		}
@@ -106,10 +106,10 @@ func (conn *Connection) UpdatePlan(plan *models.Plan) error {
 	return nil
 }
 
-func (conn *Connection) DeletePlan(plan *models.Plan) error {
-	err := conn.db.Delete(plan)
-	return err.Error
-}
+//func (conn *Connection) DeletePlan(plan *models.Plan) error {
+//	err := conn.db.Delete(plan)
+//	return err.Error
+//}
 
 func (conn *Connection) CreateSubscription(subscription *models.Subscription) error {
 	tx := conn.db.Begin()

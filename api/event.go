@@ -22,7 +22,7 @@ const (
 type EventItem struct {
 	userId      string
 	stripeId    string
-	planId      string
+	planId      uint
 	amount      float64
 	periodEnd   float64
 	periodStart float64
@@ -115,7 +115,7 @@ func getEventData(m map[string]interface{}) *EventItem {
 	eventItem.periodEnd = period["end"].(float64)
 
 	plan := item["plan"].(map[string]interface{})
-	eventItem.planId = plan["id"].(string)
+	eventItem.planId = plan["id"].(uint)
 
 	return eventItem
 

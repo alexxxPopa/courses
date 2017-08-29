@@ -12,7 +12,7 @@ import (
 //Not very useful since you can't update price or pricing interval
 
 type UpdateParams struct {
-	ID   string
+	Title   string
 	Name string
 	Amount uint64
 	Interval string
@@ -27,7 +27,7 @@ func (api *API) UpdatePlan(context echo.Context) error {
 		return err
 	}
 
-	planToUpdate, err := api.conn.FindPlanById(updateParams.ID)
+	planToUpdate, err := api.conn.FindPlanByTitle(updateParams.Title)
 	if err!=nil {
 		return err
 	}

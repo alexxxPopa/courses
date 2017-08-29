@@ -1,0 +1,14 @@
+{
+  "db": {
+    "driver": "postgres",
+    "url": "host=localhost user=postgres password=popa dbname=courses_test sslmode=disable"
+  },
+  "server": {
+    "host": "localhost",
+    "port": 8090
+  },
+  "stripe": {
+    "Publishable_Key": "pk_test_pqo79RPNGinbtAyrs3dhsFuf",
+    "Secret_Key": "sk_test_Vxrg8eBlcNzaMMdptv84MVfH"
+  }
+}

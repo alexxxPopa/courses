@@ -10,7 +10,7 @@ import (
 )
 
 type DeleteParams struct {
-	ID string
+	Title string
 }
 
 const CANCEL = "Cancel"
@@ -23,18 +23,18 @@ func (api *API) DeletePlan(context echo.Context) error {
 		return err
 	}
 
-	p, err := plan.Del(deleteParams.ID, &stripe.PlanParams{})
+	planToDelete,err := api.conn.FindPlanByTitle(deleteParams.Title)
+	if err != nil {
+		return err
+	}
+	p, err := plan.Del(planToDelete.StripeId, &stripe.PlanParams{})
 	if err != nil {
 		return nil
 	}
 	fmt.Println(p)
 
-	planToDelete,err := api.conn.FindPlanById(deleteParams.ID)
-	if err != nil {
-		return err
-	}
 	planToDelete.Type = CANCEL
-	api.conn.DeletePlan(planToDelete)
+	api.conn.UpdatePlan(planToDelete)
 
 	return nil
 }

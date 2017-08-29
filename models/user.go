@@ -12,3 +12,12 @@ type User struct {
 	UpdatedAt time.Time  `json:"updated_at"`
 	DeletedAt *time.Time `json:"-"`
 }
+
+
+//use for testing
+func NewTestUser(email string, stripeId string) *User {
+	return &User {
+		Email:email,
+		Stripe_Id:stripeId,
+	}
+}

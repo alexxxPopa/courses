@@ -14,7 +14,7 @@ import (
 
 type SubscriptionParams struct {
 	Email  string
-	PlanId string
+	Title string
 	Token  string
 }
 
@@ -43,7 +43,7 @@ func (api *API) Subscription(context echo.Context) error {
 		user.Stripe_Id = stripeCustomer.ID
 		api.conn.CreateUser(user)
 	}
-	plan, err := api.conn.FindPlanById(subscriptionParams.PlanId)
+	plan, err := api.conn.FindPlanByTitle(subscriptionParams.Title)
 
 	if err !=nil{
 		fmt.Println(err)
@@ -69,7 +69,7 @@ func (api *API) Subscription(context echo.Context) error {
 		Customer: user.Stripe_Id,
 		Items:[]*stripe.SubItemsParams{
 			{
-			Plan:plan.PlanId,
+			Plan:plan.StripeId,
 			},
 		},
 	}
@@ -83,7 +83,7 @@ func (api *API) Subscription(context echo.Context) error {
 
 
 	fmt.Println(stripeSub)
-	subscription.Amount = plan.Amount
+	subscription.Amount = float64(plan.Amount)
 	subscription.StripeId = stripeSub.ID
 	subscription.PeriodEnd = float64(stripeSub.PeriodEnd)
 	subscription.Status = Active
