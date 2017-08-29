@@ -43,8 +43,8 @@ func (conn *Connection) CreateUser(user *models.User) error {
 func (conn *Connection) findUser(query string, args ...interface{}) (*models.User, error) {
 	user := &models.User{}
 	values := append([]interface{}{query}, args...)
-	if userExists := conn.db.First(user, values...); userExists.Error != nil {
-		return nil, userExists.Error
+	if err := conn.db.First(user, values...).Error; err != nil {
+		return nil, err
 	}
 	return user, nil
 }
@@ -61,8 +61,8 @@ func (conn *Connection) UpdateUser(user *models.User) error {
 
 func (conn *Connection) FindPlanByTitle(title string) (*models.Plan, error) {
 	plan := &models.Plan{}
-	if planExists := conn.db.Model(&models.Plan{}).First(plan, "title = ?", title); planExists.Error != nil {
-		return nil, planExists.Error
+	if err := conn.db.Model(&models.Plan{}).First(plan, "title = ?", title).Error; err != nil {
+		return nil, err
 	}
 	return plan, nil
 }
@@ -160,8 +160,8 @@ func (conn *Connection) CreateCourse(course *models.Course) error {
 func (conn *Connection) GetCourses() ([]*models.Course, error) {
 	courses := []*models.Course{}
 
-	if coursesExists := conn.db.Find(courses); coursesExists.Error != nil {
-		return nil, coursesExists.Error
+	if err := conn.db.Find(courses).Error; err != nil {
+		return nil, err
 	}
 	return courses, nil
 }
