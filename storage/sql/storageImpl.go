@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/alexxxPopa/courses/models"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
-	)
+)
 
 type Connection struct {
 	db *gorm.DB
@@ -29,7 +29,6 @@ func (conn *Connection) FindUserByEmail(email string) (*models.User, error) {
 func (conn *Connection) FindUserByStripeId(stripeId string) (*models.User, error) {
 	return conn.findUser("stripe_id = ?", stripeId)
 }
-
 
 func (conn *Connection) CreateUser(user *models.User) error {
 	tx := conn.db.Begin()
@@ -73,7 +72,7 @@ func (conn *Connection) FindPlans() ([]*models.PlanInfo, error) {
 
 	rows, _ := conn.db.Model(&models.Plan{}).
 		Select("title, amount, currency, interval").Rows()
-
+	defer rows.Close()
 	for rows.Next() {
 		plan := &models.PlanInfo{}
 		err := rows.Scan(&plan.Title, &plan.Amount, &plan.Currency, &plan.Interval)
@@ -124,6 +123,7 @@ func (conn *Connection) CreateSubscription(subscription *models.Subscription) er
 func (conn *Connection) FindSubscriptionByUser(user *models.User, status string) (*models.Subscription, error) {
 	s := &models.Subscription{}
 	rows, _ := conn.db.Model(&models.Subscription{}).Where("user_id =?", user.UserId).Rows()
+	defer rows.Close()
 	for rows.Next() {
 		err := rows.Scan(&s.SubscriptionId, &s.UserId, &s.PlanId, &s.StripeId, &s.Status, &s.Amount, &s.Currency, &s.PeriodStart, &s.PeriodEnd, &s.CreatedAt, &s.UpdatedAt)
 		if err != nil {
@@ -137,7 +137,7 @@ func (conn *Connection) FindSubscriptionByUser(user *models.User, status string)
 	return nil, nil
 }
 
-func(conn *Connection) UpdateSubscription(subscription *models.Subscription) error {
+func (conn *Connection) UpdateSubscription(subscription *models.Subscription) error {
 	tx := conn.db.Begin()
 	if err := tx.Save(subscription).Error; err != nil {
 		tx.Rollback()
@@ -147,7 +147,7 @@ func(conn *Connection) UpdateSubscription(subscription *models.Subscription) err
 	return nil
 }
 
-func (conn *Connection) CreateCourse (course *models.Course) error {
+func (conn *Connection) CreateCourse(course *models.Course) error {
 	tx := conn.db.Begin()
 	if err := tx.Create(course).Error; err != nil {
 		tx.Rollback()
@@ -160,7 +160,7 @@ func (conn *Connection) CreateCourse (course *models.Course) error {
 func (conn *Connection) GetCourses() ([]*models.Course, error) {
 	courses := []*models.Course{}
 
-	if coursesExists := conn.db.Find(courses) ; coursesExists.Error != nil {
+	if coursesExists := conn.db.Find(courses); coursesExists.Error != nil {
 		return nil, coursesExists.Error
 	}
 	return courses, nil
