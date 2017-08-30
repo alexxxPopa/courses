@@ -147,6 +147,14 @@ func (conn *Connection) UpdateSubscription(subscription *models.Subscription) er
 	return nil
 }
 
+func (conn *Connection) IsSubscriptionActive(user *models.User, plan *models.Plan) bool {
+	s := &models.Subscription{}
+	err := conn.db.Model(&models.Subscription{}).Where(&models.Subscription{UserId:user.UserId, PlanId:plan.PlanId, Status:"Active"}).First(s).Error ; if err != nil {
+		return false
+	}
+	return true
+}
+
 func (conn *Connection) CreateCourse(course *models.Course) error {
 	tx := conn.db.Begin()
 	if err := tx.Create(course).Error; err != nil {

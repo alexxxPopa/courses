@@ -25,8 +25,11 @@ func Create(config *conf.Config) *API {
 		log:    logrus.WithField("component", "api"),
 		config: config,
 	}
-	conn, _ := sql.Connect(config);
-	//defer conn.Close()
+	conn, err := sql.Connect(config);
+	if err != nil {
+		logrus.WithError(err).Fatal("connection to database failed")
+	}
+	defer conn.Close()
 	api.conn = conn
 
 	e := echo.New()

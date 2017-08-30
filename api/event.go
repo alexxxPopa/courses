@@ -47,26 +47,34 @@ func (api *API) Event(context echo.Context) error {
 	case InvoiceCreated:
 		return handleInvoiceCreated(api, event.Data.Obj, 123, context)
 	case InvoiceFailed:
+		api.log.Logger.Debugf("Received invoice failed event for user :  %v", user)
 		subscription, err := api.conn.FindSubscriptionByUser(user, Pending)
 		if err != nil {
-			return err
+			api.log.Logger.Warnf("Failed to retrieve subscription :  %v", subscription)
+			return context.JSON(http.StatusInternalServerError, err)
 		}
 		subscription.Status = Failed
 		api.conn.UpdateSubscription(subscription)
+		api.log.Logger.Debugf("Updated subscription to failed :  %v", subscription)
 		return context.JSON(http.StatusOK, nil)
 	case InvoiceSucceeded:
+		api.log.Logger.Debugf("Received invoice succeeded event for user :  %v", user)
 		expiredSubscription, _ := api.conn.FindSubscriptionByUser(user, Active)
 		expiredSubscription.Status = Expired
+		api.log.Logger.Debugf("Previous subscription marked as expired :  %v", expiredSubscription)
 		api.conn.UpdateSubscription(expiredSubscription)
 		pendingSubscription, _ := api.conn.FindSubscriptionByUser(user, Pending)
 		pendingSubscription.Status = Active
 		api.conn.UpdateSubscription(pendingSubscription)
+		api.log.Logger.Debugf("Subscription marked as Active :  %v", pendingSubscription)
 		return context.JSON(http.StatusOK, nil)
 	case CancelEvent:
+		api.log.Logger.Debugf("Received cancel event for user :  %v", user)
 		activeSubscription, _ := api.conn.FindSubscriptionByUser(user, Active)
 		activeSubscription.Status = Expired
 		api.conn.UpdateSubscription(activeSubscription)
 	case UpdateEvent:
+		api.log.Logger.Debugf("Received update subscription event for user :  %v", user)
 		//TODO When should the updated Subscription be billed --> at the time of the switch or at the end of previous subscription?
 		activeSubscription, _ := api.conn.FindSubscriptionByUser(user, Active)
 		eventItem := getEventData(event.Data.Obj)
@@ -75,10 +83,11 @@ func (api *API) Event(context echo.Context) error {
 		api.conn.UpdateSubscription(activeSubscription)
 	}
 
-	return nil
+	return context.JSON(http.StatusOK,nil)
 }
 
 func handleInvoiceCreated(api *API, eventData map[string]interface{}, userId uint, context echo.Context) error {
+	api.log.Logger.Debugf("Received invoice created event from stripe for user :  %v", userId)
 	eventItem := getEventData(eventData)
 
 	subscription := &models.Subscription{
@@ -93,7 +102,8 @@ func handleInvoiceCreated(api *API, eventData map[string]interface{}, userId uin
 	}
 
 	if err := api.conn.CreateSubscription(subscription); err != nil {
-		return err
+		api.log.Logger.Warnf("Failed to create subscription :  %v", subscription)
+		return context.JSON(http.StatusInternalServerError, err)
 	}
 
 	return context.JSON(http.StatusOK, nil)

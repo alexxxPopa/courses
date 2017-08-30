@@ -167,3 +167,20 @@ func (s *StorageTestSuite) TestGetCourses() {
 	assert.Equal(s.T(), 2, len(courses))
 	assert.Equal(s.T(), courses[0].Plan, "silver")
 }
+
+func (s *StorageTestSuite) TestIsActiveSubscription() {
+	user := models.NewTestUser("alex", "123")
+
+	err := s.Conn.CreateUser(user)
+	require.NoError(s.T(), err)
+
+	plan := s.createPlan("gold", 100)
+
+	subscription := models.NewTestSubscription(user.UserId, plan)
+	err = s.Conn.CreateSubscription(subscription)
+	require.NoError(s.T(), err)
+
+	b := s.Conn.IsSubscriptionActive(user, plan)
+
+	assert.True(s.T(), b)
+}

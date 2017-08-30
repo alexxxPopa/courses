@@ -20,7 +20,9 @@ var RootCmd = &cobra.Command{
 			logrus.Fatal(err)
 		}
 		api := api.Create(config)
-		api.ListenAndServe(fmt.Sprintf("%v:%v", config.SERVER.Host, config.SERVER.Port))
+		if err := api.ListenAndServe(fmt.Sprintf("%v:%v", config.SERVER.Host, config.SERVER.Port)); err != nil {
+			logrus.WithError(err).Fatal("http server listen failed")
+		}
 	},
 
 }

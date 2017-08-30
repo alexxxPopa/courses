@@ -3,10 +3,11 @@ package api
 import (
 	"github.com/labstack/echo"
 	"github.com/stripe/stripe-go"
-//	"github.com/stripe/stripe-go/plan"
-//	"fmt"
+	//	"github.com/stripe/stripe-go/plan"
+	//	"fmt"
 	"github.com/stripe/stripe-go/plan"
 	"fmt"
+	"net/http"
 )
 
 type DeleteParams struct {
@@ -20,21 +21,22 @@ func (api *API) DeletePlan(context echo.Context) error {
 
 	deleteParams := &DeleteParams{}
 	if err := context.Bind(deleteParams); err != nil {
-		return err
+		return context.JSON(http.StatusBadRequest, err)
 	}
 
-	planToDelete,err := api.conn.FindPlanByTitle(deleteParams.Title)
+	planToDelete, err := api.conn.FindPlanByTitle(deleteParams.Title)
 	if err != nil {
-		return err
+		return context.JSON(http.StatusInternalServerError, err)
 	}
 	p, err := plan.Del(planToDelete.StripeId, &stripe.PlanParams{})
 	if err != nil {
-		return nil
+		return context.JSON(http.StatusInternalServerError, err)
 	}
 	fmt.Println(p)
 
 	planToDelete.Type = CANCEL
 	api.conn.UpdatePlan(planToDelete)
+	api.log.Logger.Warn("Plan successfully deleted: %v", planToDelete)
 
-	return nil
+	return context.JSON(http.StatusOK, err)
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/stripe/stripe-go/plan"
 	"github.com/alexxxPopa/courses/models"
 	"fmt"
+	"net/http"
 )
 
 type PlanParams struct {
@@ -21,7 +22,7 @@ func (api *API) CreatePlan(context echo.Context) error {
 
 	planParams := &PlanParams{}
 	if err := context.Bind(planParams); err != nil {
-		return  err
+		return context.JSON(http.StatusBadRequest, err)
 	}
 
 	//TODO Generate a random string as ID
@@ -35,21 +36,23 @@ func (api *API) CreatePlan(context echo.Context) error {
 
 	basicPlan, err := plan.New(stripeParams)
 	if err != nil {
-		return err
+		api.log.Logger.Warnf("Failed to create plan: %v", err)
+		return context.JSON(http.StatusInternalServerError, err)
 	}
 
-	api.conn.CreatePlan(&models.Plan{
+	p := api.conn.CreatePlan(&models.Plan{
 		StripeId: basicPlan.ID,
 		Title:    planParams.Title,
 		Currency: planParams.Currency,
 		Interval: planParams.Interval,
 		Amount:   planParams.Amount,
-		Type : "Active",
-
+		Type:     "Active",
 	})
 
+	api.log.Logger.Debugf("Plan successfully created: %v", p)
+
 	fmt.Println(basicPlan)
-	return nil
+	return context.JSON(http.StatusOK, p)
 	//TODO return planId
 	//TODO also show subscriptions
 }

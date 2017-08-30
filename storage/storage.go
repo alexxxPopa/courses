@@ -19,6 +19,7 @@ type Connection interface {
 	CreateSubscription(subscription *models.Subscription) error
 	UpdateSubscription(subscription *models.Subscription) error
 	FindSubscriptionByUser(user *models.User, status string) (*models.Subscription, error)
+	IsSubscriptionActive(user *models.User, plan *models.Plan) bool
 	CreateCourse(course *models.Course) error
 	GetCourses() ([]models.Course, error)
 	CreateCategory(category *models.Category) error

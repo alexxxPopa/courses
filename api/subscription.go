@@ -6,16 +6,16 @@ import (
 	"github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/customer"
 	"net/http"
-//	"github.com/stripe/stripe-go/charge"
+	//	"github.com/stripe/stripe-go/charge"
 	"fmt"
 	//"github.com/stripe/stripe-go/payout"
 	"github.com/stripe/stripe-go/sub"
 )
 
 type SubscriptionParams struct {
-	Email  string
+	Email string
 	Title string
-	Token  string
+	Token string
 }
 
 func (api *API) Subscription(context echo.Context) error {
@@ -25,7 +25,9 @@ func (api *API) Subscription(context echo.Context) error {
 	if err := context.Bind(subscriptionParams); err != nil {
 		return err
 	}
-	//TODO better error handling
+
+	api.log.Logger.Debugf("Subscribe request with %v", subscriptionParams)
+
 	user, err := api.conn.FindUserByEmail(subscriptionParams.Email)
 	if err != nil {
 		user = &models.User{
@@ -36,7 +38,7 @@ func (api *API) Subscription(context echo.Context) error {
 		}
 		stripeCustomerParams.SetSource(subscriptionParams.Token)
 		stripeCustomer, err := customer.New(stripeCustomerParams)
-		if err!=nil {
+		if err != nil {
 			return err
 		}
 		//TODO should token also be set on stripe user creation??
@@ -45,13 +47,18 @@ func (api *API) Subscription(context echo.Context) error {
 	}
 	plan, err := api.conn.FindPlanByTitle(subscriptionParams.Title)
 
-	if err !=nil{
-		fmt.Println(err)
+	if err != nil {
+		api.log.Logger.Debugf("Failed to retrieve plan : %v", subscriptionParams)
+		return context.JSON(http.StatusBadRequest, plan)
+	}
+
+	if api.conn.IsSubscriptionActive(user, plan) {
+		api.log.Logger.Warnf("User already subscribed %v", subscriptionParams)
+		return context.JSON(http.StatusMethodNotAllowed, "Already subscribed")
 	}
 
 	//TODO should not have let subscribe for already subscribed subscription
 
-	//TODO Add subscription expiration if that is the case
 	subscription := &models.Subscription{
 		PlanId: plan.PlanId,
 		UserId: user.UserId,
@@ -65,22 +72,22 @@ func (api *API) Subscription(context echo.Context) error {
 	//}
 	//
 	//payout, err := charge.New(chargeParams)
-	chargeParams:=&stripe.SubParams{
+	chargeParams := &stripe.SubParams{
 		Customer: user.Stripe_Id,
-		Items:[]*stripe.SubItemsParams{
+		Items: []*stripe.SubItemsParams{
 			{
-			Plan:plan.StripeId,
+				Plan: plan.StripeId,
 			},
 		},
 	}
 
 	stripeSub, err := sub.New(chargeParams)
 	if err != nil {
-		return err
+		api.log.Logger.Warnf("Failed to charge for subscription :  %v", err)
+		return context.JSON(http.StatusInternalServerError, err)
 	}
 
 	//Check invoice
-
 
 	fmt.Println(stripeSub)
 	subscription.Amount = float64(plan.Amount)
