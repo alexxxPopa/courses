@@ -148,16 +148,16 @@ func (s *StorageTestSuite) TestUpdateSubscription() {
 
 	assert.Nil(s.T(), m)
 
-	updateSub,err := s.Conn.FindSubscriptionByUser(user, "Expired")
+	updateSub, err := s.Conn.FindSubscriptionByUser(user, "Expired")
 	require.NoError(s.T(), err)
 	assert.Equal(s.T(), sub.Amount, updateSub.Amount)
 }
 
 func (s *StorageTestSuite) TestGetCourses() {
-	course := models.NewCourse("abc",  "silver")
+	course := models.NewCourse("abc", "silver")
 	err := s.Conn.CreateCourse(course)
 	require.NoError(s.T(), err)
-	secondCourse := models.NewCourse("def",  "silver")
+	secondCourse := models.NewCourse("def", "silver")
 	err = s.Conn.CreateCourse(secondCourse)
 	require.NoError(s.T(), err)
 
@@ -183,4 +183,45 @@ func (s *StorageTestSuite) TestIsActiveSubscription() {
 	b := s.Conn.IsSubscriptionActive(user, plan)
 
 	assert.True(s.T(), b)
+}
+
+func (s *StorageTestSuite) TestFindCategoryById() {
+	category := models.NewCategory("first")
+	err := s.Conn.CreateCategory(category)
+	require.NoError(s.T(), err)
+
+	c,err := s.Conn.FindCategoryById(1)
+	require.NoError(s.T(), err)
+
+	assert.Equal(s.T(), "first", c.Title)
+}
+
+func (s *StorageTestSuite) TestFindArticlesPerCourse() {
+	c := models.NewCourse("yiis", "gold")
+	err := s.Conn.CreateCourse(c)
+	require.NoError(s.T(), err)
+
+	c1 := models.NewCourse("yiis", "gold")
+	err = s.Conn.CreateCourse(c1)
+	require.NoError(s.T(), err)
+
+	course, err := s.Conn.FindCourseById(1)
+	require.NoError(s.T(), err)
+
+	course1, err := s.Conn.FindCourseById(2)
+	require.NoError(s.T(), err)
+
+	article1 := models.NewTestArticle(2, course.CourseId)
+	err = s.Conn.CreateArticle(article1)
+	require.NoError(s.T(), err)
+	article2 := models.NewTestArticle(1, course.CourseId)
+	article2.Body = "bumshakalaka"
+	err = s.Conn.CreateArticle(article2)
+	require.NoError(s.T(), err)
+	models.NewTestArticle(1, course1.CourseId)
+
+	articles, err := s.Conn.FindArticlesPerCourse(course)
+	require.NoError(s.T(), err)
+
+	assert.Equal(s.T(), articles[1].Body, "bumshakalaka")
 }

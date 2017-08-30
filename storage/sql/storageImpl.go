@@ -184,6 +184,14 @@ func (conn *Connection) CreateCategory(category *models.Category) error {
 	return nil
 }
 
+func (conn *Connection) FindCategoryById (categoryId uint) (*models.Category, error) {
+	category := &models.Category{}
+	if err := conn.db.Model(&models.Category{}).First(category, "category_id = ?", categoryId).Error; err != nil {
+		return nil, err
+	}
+	return category, nil
+}
+
 func (conn *Connection) CreateArticle(article *models.Article) error {
 	tx := conn.db.Begin()
 	if err := tx.Create(article).Error; err != nil {
@@ -192,6 +200,23 @@ func (conn *Connection) CreateArticle(article *models.Article) error {
 	}
 	tx.Commit()
 	return nil
+}
+
+func (conn *Connection) FindCourseById(courseId uint) (*models.Course, error) {
+	course := &models.Course{}
+	if err := conn.db.Model(&models.Course{}).First(course, "course_id = ?", courseId).Error; err != nil {
+		return nil, err
+	}
+	return course, nil
+}
+
+func (conn *Connection) FindArticlesPerCourse(course *models.Course) ([]models.Article, error) {
+	articles := &[] models.Article{}
+	if err := conn.db.Model(course).Related(&models.Article{}, "course_id").Find(articles).Error ;  err!= nil {
+		return nil, err
+	}
+
+	return *articles, nil
 }
 
 func Connect(config *conf.Config) (*Connection, error) {
