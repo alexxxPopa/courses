@@ -27,4 +27,5 @@ func (api *API) GetCourse(context echo.Context) error {
 		return context.JSON(http.StatusInternalServerError, err)
 	}
 
+	return nil
 }
