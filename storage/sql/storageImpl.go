@@ -17,8 +17,8 @@ func (conn *Connection) Close() error {
 }
 
 func (conn *Connection) Migrate() error {
-	conn.db.DropTable(&models.User{}, &models.Plan{}, &models.Subscription{}) // for testing purposes
-	conn.db = conn.db.AutoMigrate(&models.User{}, &models.Plan{}, &models.Subscription{})
+	conn.db.DropTable(&models.User{}, &models.Plan{}, &models.Subscription{}, &models.Course{}, &models.Article{}, &models.Category{}) // for testing purposes
+	conn.db = conn.db.AutoMigrate(&models.User{}, &models.Plan{}, &models.Subscription{}, &models.Course{}, &models.Article{}, &models.Category{})
 	return conn.db.Error
 }
 

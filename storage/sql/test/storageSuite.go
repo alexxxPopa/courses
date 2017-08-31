@@ -196,32 +196,32 @@ func (s *StorageTestSuite) TestFindCategoryById() {
 	assert.Equal(s.T(), "first", c.Title)
 }
 
-func (s *StorageTestSuite) TestFindArticlesPerCourse() {
-	c := models.NewCourse("yiis", "gold")
-	err := s.Conn.CreateCourse(c)
-	require.NoError(s.T(), err)
-
-	c1 := models.NewCourse("yiis", "gold")
-	err = s.Conn.CreateCourse(c1)
-	require.NoError(s.T(), err)
-
-	course, err := s.Conn.FindCourseById(1)
-	require.NoError(s.T(), err)
-
-	course1, err := s.Conn.FindCourseById(2)
-	require.NoError(s.T(), err)
-
-	article1 := models.NewTestArticle(2, course.CourseId)
-	err = s.Conn.CreateArticle(article1)
-	require.NoError(s.T(), err)
-	article2 := models.NewTestArticle(1, course.CourseId)
-	article2.Body = "bumshakalaka"
-	err = s.Conn.CreateArticle(article2)
-	require.NoError(s.T(), err)
-	models.NewTestArticle(1, course1.CourseId)
-
-	articles, err := s.Conn.FindArticlesPerCourse(course)
-	require.NoError(s.T(), err)
-
-	assert.Equal(s.T(), articles[1].Body, "bumshakalaka")
-}
+//func (s *StorageTestSuite) TestFindArticlesPerCourse() {
+//	c := models.NewCourse("yiis", "gold")
+//	err := s.Conn.CreateCourse(c)
+//	require.NoError(s.T(), err)
+//
+//	c1 := models.NewCourse("yiis", "gold")
+//	err = s.Conn.CreateCourse(c1)
+//	require.NoError(s.T(), err)
+//
+//	course, err := s.Conn.FindCourseById(1)
+//	require.NoError(s.T(), err)
+//
+//	course1, err := s.Conn.FindCourseById(2)
+//	require.NoError(s.T(), err)
+//
+//	article1 := models.NewTestArticle(2, course.CourseId)
+//	err = s.Conn.CreateArticle(article1)
+//	require.NoError(s.T(), err)
+//	article2 := models.NewTestArticle(1, course.CourseId)
+//	article2.Body = "bumshakalaka"
+//	err = s.Conn.CreateArticle(article2)
+//	require.NoError(s.T(), err)
+//	models.NewTestArticle(1, course1.CourseId)
+//
+//	articles, err := s.Conn.FindArticlesPerCourse(course)
+//	require.NoError(s.T(), err)
+//
+//	assert.Equal(s.T(), articles[1].Body, "bumshakalaka")
+//}

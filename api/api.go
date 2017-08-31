@@ -29,7 +29,7 @@ func Create(config *conf.Config) *API {
 	if err != nil {
 		logrus.WithError(err).Fatal("connection to database failed")
 	}
-	defer conn.Close()
+	//defer conn.Close()
 	api.conn = conn
 
 	e := echo.New()
