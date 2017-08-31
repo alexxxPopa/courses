@@ -7,8 +7,8 @@ import (
 )
 
 type CourseParams struct {
-	CourseId uint
-	Email    string
+	CourseId uint `json:"course_id"  query:"course_id"`
+	Email    string `json:"email"  query:"email"`
 }
 
 func (api *API) GetCourses(context echo.Context) error {

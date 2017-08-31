@@ -8,11 +8,11 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/token"
-	"fmt"
 	"github.com/labstack/echo"
 	//"github.com/alexxxPopa/courses/models"
-//	"strings"
-	"strings"
+	//	"strings"
+	"github.com/alexxxPopa/courses/models"
+	"net/http"
 )
 
 type SubscriptionTestSuite struct {
@@ -50,12 +50,13 @@ func (ts *SubscriptionTestSuite) SetupTest() {
 //
 //}
 
-func (ts *SubscriptionTestSuite) TestCancelSubscription() {
-	userJSON := `{"email":"popa.popa@mbitcasino.com","planId":"gold-month"}`
-	rec := ts.API.NewRequest(echo.POST, "http://localhost:8090/cancelSubscription", strings.NewReader(userJSON))
+//func (ts *SubscriptionTestSuite) TestCancelSubscription() {
+//	userJSON := `{"email":"popa.popa@mbitcasino.com","planId":"gold-month"}`
+//	rec := ts.API.NewRequest(echo.POST, "http://localhost:8090/cancelSubscription", strings.NewReader(userJSON))
+//
+//	fmt.Println(rec)
+//}
 
-	fmt.Println(rec)
-}
 //
 //func (ts *SubscriptionTestSuite) TestPlanUpdate() {
 //	userJSON := `{"id":"silver-month","name":"silver","interval":"month","amount":10000}`
@@ -77,6 +78,35 @@ func (ts *SubscriptionTestSuite) TestCancelSubscription() {
 //
 //	fmt.Println(rec)
 //}
+
+func (ts *SubscriptionTestSuite) TestGetCoursesTest() {
+	//err := ts.API.conn.CreateUser(models.NewTestUser("popa.popa@mbitcasino.com", "123"))
+	//require.NoError(ts.T(), err)
+
+	err := ts.API.conn.CreatePlan(models.NewTestPlan("gold", 100))
+	require.NoError(ts.T(), err)
+
+	plan ,err := ts.API.conn.FindPlanByTitle("gold")
+	require.NoError(ts.T(), err)
+
+	err = ts.API.conn.CreateCourse(models.NewCourse("abc", "gold"))
+	course,err := ts.API.conn.FindCourseById(1)
+	require.NoError(ts.T(), err)
+
+	err = ts.API.conn.CreateSubscription(models.NewTestSubscription(1,plan))
+
+	article := models.NewTestArticle(1, course.CourseId)
+	article1 := models.NewTestArticle(2,course.CourseId)
+
+	err = ts.API.conn.CreateArticle(article)
+	require.NoError(ts.T(), err)
+	err = ts.API.conn.CreateArticle(article1)
+	require.NoError(ts.T(), err)
+
+	rec := ts.API.NewRequest(echo.GET, "http://localhost:8090//getCourses/course?course_id=1&email=popa.popa@mbitcasino.com", nil)
+
+	require.Equal(ts.T(), http.StatusOK, rec.Code)
+}
 
 func obtainStripeVerificationToke() (*stripe.Token, error) {
 
