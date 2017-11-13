@@ -34,13 +34,10 @@ func (api *API) Subscription(context echo.Context) error {
 		user = &models.User{
 			Email: subscriptionParams.Email,
 		}
-		stripeCustomerParams := &stripe.CustomerParams{
-			Email: subscriptionParams.Email,
-		}
-		stripeCustomerParams.SetSource(subscriptionParams.Token)
-		stripeCustomer, err := customer.New(stripeCustomerParams)
+		stripeCustomer, err := api.stripe.CreateCustomer(subscriptionParams.Email, subscriptionParams.Token)
 		if err != nil {
-			return err
+			api.log.Logger.Warnf("Failed to create stripe customer")
+			return context.JSON(http.StatusInternalServerError, err)
 		}
 		//TODO should token also be set on stripe user creation??
 		user.Stripe_Id = stripeCustomer.ID
@@ -66,16 +63,7 @@ func (api *API) Subscription(context echo.Context) error {
 	//	UserId: user.UserId,
 	//}
 
-	chargeParams := &stripe.SubParams{
-		Customer: user.Stripe_Id,
-		Items: []*stripe.SubItemsParams{
-			{
-				Plan: plan.StripeId,
-			},
-		},
-	}
-
-	stripeSub, err := sub.New(chargeParams)
+	stripeSub, err := api.stripe.Subscribe(user, plan)
 	if err != nil {
 		api.log.Logger.Warnf("Failed to charge for subscription :  %v", err)
 		return context.JSON(http.StatusInternalServerError, err)
