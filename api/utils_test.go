@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/mock"
 	"github.com/alexxxPopa/courses/models"
+	"github.com/stripe/stripe-go"
 )
 
 func (api *API) NewRequest(method string, url string, body io.Reader) *httptest.ResponseRecorder {
@@ -21,8 +22,41 @@ type MockedConnection struct {
 	mock.Mock
 }
 
+type MockedStripe struct {
+	mock.Mock
+}
+
+func CreateMockedStripe () *MockedStripe {
+	return new(MockedStripe)
+}
+
 func CreateMockedConnection() *MockedConnection {
 	return new(MockedConnection)
+}
+
+func (client *MockedStripe) CreateCustomer(email string, token string) (*stripe.Customer, error) {
+	args := client.Called(email, token)
+	err := args.Error(1)
+	if err != nil {
+		return nil, err
+	}
+	i:= args.Get(0)
+	customer := i.(*stripe.Customer)
+
+	return customer, err
+}
+
+
+func (client *MockedStripe) Subscribe(user *models.User, plan *models.Plan) (*stripe.Sub, error) {
+	args := client.Called(user, plan)
+	err := args.Error(1)
+	if err != nil {
+		return nil, err
+	}
+	i:= args.Get(0)
+	subscription := i.(*stripe.Sub)
+
+	return subscription, err
 }
 
 func (conn *MockedConnection) Migrate() error {
@@ -83,7 +117,8 @@ func (conn *MockedConnection) FindSubscriptionByUser(user *models.User, status s
 	return nil, nil
 }
 func (conn *MockedConnection) IsSubscriptionActive(user *models.User, plan *models.Plan) bool {
-	return false
+	args := conn.Called(user, plan)
+	return args.Bool(0)
 }
 func (conn *MockedConnection) CreateCourse(course *models.Course) error {
 	return nil
