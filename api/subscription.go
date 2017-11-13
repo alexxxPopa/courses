@@ -28,6 +28,7 @@ func (api *API) Subscription(context echo.Context) error {
 
 	api.log.Logger.Debugf("Subscribe request with %v", subscriptionParams)
 
+	// user will only be persisted when he first deposits, both internal and in stripe
 	user, err := api.conn.FindUserByEmail(subscriptionParams.Email)
 	if err != nil {
 		user = &models.User{
@@ -45,6 +46,7 @@ func (api *API) Subscription(context echo.Context) error {
 		user.Stripe_Id = stripeCustomer.ID
 		api.conn.CreateUser(user)
 	}
+
 	plan, err := api.conn.FindPlanByTitle(subscriptionParams.Title)
 
 	if err != nil {
@@ -59,19 +61,11 @@ func (api *API) Subscription(context echo.Context) error {
 
 	//TODO should not have let subscribe for already subscribed subscription
 
-	subscription := &models.Subscription{
-		PlanId: plan.PlanId,
-		UserId: user.UserId,
-	}
-
-	//chargeParams := &stripe.ChargeParams{
-	//	Email:    user.Email,
-	//	Amount:   plan.Amount,
-	//	Customer: user.Stripe_Id,
-	//	Currency: "usd",
+	//subscription := &models.Subscription{
+	//	PlanId: plan.PlanId,
+	//	UserId: user.UserId,
 	//}
-	//
-	//payout, err := charge.New(chargeParams)
+
 	chargeParams := &stripe.SubParams{
 		Customer: user.Stripe_Id,
 		Items: []*stripe.SubItemsParams{
@@ -87,19 +81,19 @@ func (api *API) Subscription(context echo.Context) error {
 		return context.JSON(http.StatusInternalServerError, err)
 	}
 
-	//Check invoice
+	//Code below should be handled from events
 
 	fmt.Println(stripeSub)
-	subscription.Amount = float64(plan.Amount)
-	subscription.StripeId = stripeSub.ID
-	subscription.PeriodEnd = float64(stripeSub.PeriodEnd)
-	subscription.Status = Active
-	//TODO should we save card information
+	//subscription.Amount = float64(plan.Amount)
+	//subscription.StripeId = stripeSub.ID
+	//subscription.PeriodEnd = float64(stripeSub.PeriodEnd)
+	//subscription.Status = Active
+	////TODO should we save card information
+	//
+	//if err := api.conn.CreateSubscription(subscription); err != nil {
+	//	return err
+	//}
+	//api.conn.UpdateUser(user)
 
-	if err := api.conn.CreateSubscription(subscription); err != nil {
-		return err
-	}
-	api.conn.UpdateUser(user)
-
-	return context.JSON(http.StatusOK, nil) //TODO maybe return something different
+	return context.JSON(http.StatusCreated, "Subscription successfully created") //TODO maybe return something different
 }
