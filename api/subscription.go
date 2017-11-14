@@ -4,12 +4,10 @@ import (
 	"github.com/labstack/echo"
 	"github.com/alexxxPopa/courses/models"
 	"github.com/stripe/stripe-go"
-	"github.com/stripe/stripe-go/customer"
 	"net/http"
 	//	"github.com/stripe/stripe-go/charge"
 	"fmt"
 	//"github.com/stripe/stripe-go/payout"
-	"github.com/stripe/stripe-go/sub"
 )
 
 type SubscriptionParams struct {
@@ -34,9 +32,9 @@ func (api *API) Subscription(context echo.Context) error {
 		user = &models.User{
 			Email: subscriptionParams.Email,
 		}
-		stripeCustomer, err := api.stripe.CreateCustomer(subscriptionParams.Email, subscriptionParams.Token)
+		stripeCustomer,err := api.stripe.CreateCustomer(subscriptionParams.Email, subscriptionParams.Token)
 		if err != nil {
-			api.log.Logger.Warnf("Failed to create stripe customer")
+			api.log.Logger.Debugf("Failed to create stripe customer: %v", err)
 			return context.JSON(http.StatusInternalServerError, err)
 		}
 		//TODO should token also be set on stripe user creation??
@@ -63,7 +61,7 @@ func (api *API) Subscription(context echo.Context) error {
 	//	UserId: user.UserId,
 	//}
 
-	stripeSub, err := api.stripe.Subscribe(user, plan)
+	stripeSubscription, err:= api.stripe.Subscribe(user, plan)
 	if err != nil {
 		api.log.Logger.Warnf("Failed to charge for subscription :  %v", err)
 		return context.JSON(http.StatusInternalServerError, err)
@@ -71,7 +69,7 @@ func (api *API) Subscription(context echo.Context) error {
 
 	//Code below should be handled from events
 
-	fmt.Println(stripeSub)
+	fmt.Println(stripeSubscription)
 	//subscription.Amount = float64(plan.Amount)
 	//subscription.StripeId = stripeSub.ID
 	//subscription.PeriodEnd = float64(stripeSub.PeriodEnd)
@@ -83,5 +81,5 @@ func (api *API) Subscription(context echo.Context) error {
 	//}
 	//api.conn.UpdateUser(user)
 
-	return context.JSON(http.StatusCreated, "Subscription successfully created") //TODO maybe return something different
+	return context.JSON(http.StatusCreated, stripeSubscription) //TODO maybe return something different
 }

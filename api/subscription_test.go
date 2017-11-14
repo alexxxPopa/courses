@@ -7,7 +7,7 @@ import (
 	"github.com/alexxxPopa/courses/conf"
 	"github.com/stretchr/testify/require"
 	"github.com/stripe/stripe-go"
-	"github.com/stripe/stripe-go/token"
+	//"github.com/stripe/stripe-go/token"
 	"github.com/labstack/echo"
 	"github.com/alexxxPopa/courses/models"
 	"strings"
@@ -17,6 +17,7 @@ import (
 	"errors"
 	"github.com/stretchr/testify/mock"
 	"fmt"
+	"encoding/json"
 )
 
 type SubscriptionTestSuite struct {
@@ -30,24 +31,29 @@ func (ts *SubscriptionTestSuite) SetupTest() {
 	config, err := conf.LoadTestConfig("../config_test.json")
 	require.NoError(ts.T(), err)
 	conn:= CreateMockedConnection()
-	api := Create(config, conn)
+	stripe:= CreateMockedStripe()
+	api := Create(config, conn, stripe)
 	ts.API = api
-	stripe.Key = config.STRIPE.Publishable_Key
 }
 
 func (ts *SubscriptionTestSuite) TestFirstSubscription() {
 	conn := CreateMockedConnection()
 	ts.API.conn = conn
-
-	t, err := obtainStripeVerificationToken()
-	require.NoError(ts.T(), err)
+	stripe:= CreateMockedStripe()
+	ts.API.stripe = stripe
+	t := obtainStripeVerificationToken()
 
 	plan := models.NewTestPlan("silver-month", 100)
-	plan.StripeId = "silver-monthly-month"
+
+	stripeCustomer := createStripeCustomer()
+	stripeSubscription := createStripeSubscription(stripeCustomer)
 
 	conn.On("FindUserByEmail", mock.Anything).Return(nil, errors.New("user not found"))
 	conn.On("FindPlanByTitle", mock.Anything).Return(plan, nil)
-	conn.On("IsSubscriptionActive", mock.Anything).Return(false)
+	conn.On("IsSubscriptionActive", mock.Anything, mock.Anything).Return(false)
+
+	stripe.On("CreateCustomer", mock.Anything, mock.Anything).Return(stripeCustomer, nil)
+	stripe.On("Subscribe", mock.Anything, mock.Anything).Return(stripeSubscription, nil)
 
 	userJSON := `{"email":"alex.alex@mbitcasino.com","planId":"silver-month","token":` + `"` + t.ID + `"` + `}`
 
@@ -60,23 +66,74 @@ func (ts *SubscriptionTestSuite) TestFirstSubscription() {
 func (ts *SubscriptionTestSuite) TestSuccessiveSubscription() {
 	conn := CreateMockedConnection()
 	ts.API.conn = conn
+	stripe:= CreateMockedStripe()
+	ts.API.stripe = stripe
 
 	user := models.NewTestUser("popa.popa@mbitcasino.com", "cus_BlEKeMb0IaNtUT")
 
 	plan := models.NewTestPlan("silver-month", 100)
-	plan.StripeId = "silver-monthly-month"
 
-	t, err := obtainStripeVerificationToken()
-	require.NoError(ts.T(), err)
+	t := obtainStripeVerificationToken()
+	stripeCustomer := createStripeCustomer()
+	stripeSubscription := createStripeSubscription(stripeCustomer)
 
 	conn.On("FindUserByEmail", mock.Anything).Return(user, nil)
 	conn.On("FindPlanByTitle", mock.Anything).Return(plan, nil)
-	conn.On("IsSubscriptionActive", mock.Anything).Return(false)
+	conn.On("IsSubscriptionActive", mock.Anything, mock.Anything).Return(false)
+
+	stripe.On("Subscribe", mock.Anything, mock.Anything).Return(stripeSubscription, nil)
 
 	userJSON := `{"email":"alex.alex@mbitcasino.com","planId":"silver-month","token":` + `"` + t.ID + `"` + `}`
 
 	rec := ts.API.NewRequest(echo.POST, "http://localhost:8090/subscription", strings.NewReader(userJSON))
 	assert.Equal(ts.T(), http.StatusCreated, rec.Code)
+}
+
+func (ts *SubscriptionTestSuite) TestSubscribeWithStripeError() {
+	conn := CreateMockedConnection()
+	ts.API.conn = conn
+	stripe:= CreateMockedStripe()
+	ts.API.stripe = stripe
+
+	user := models.NewTestUser("popa.popa@mbitcasino.com", "cus_BlEKeMb0IaNtUT")
+	plan := models.NewTestPlan("silver-month", 100)
+
+	t := obtainStripeVerificationToken()
+
+	conn.On("FindUserByEmail", mock.Anything).Return(user, nil)
+	conn.On("FindPlanByTitle", mock.Anything).Return(plan, nil)
+	conn.On("IsSubscriptionActive", mock.Anything, mock.Anything).Return(false)
+
+	stripe.On("Subscribe", mock.Anything, mock.Anything).Return(nil, errors.New("subscribe failed"))
+
+	userJSON := `{"email":"alex.alex@mbitcasino.com","planId":"silver-month","token":` + `"` + t.ID + `"` + `}`
+	rec := ts.API.NewRequest(echo.POST, "http://localhost:8090/subscription", strings.NewReader(userJSON))
+
+
+	assert.Equal(ts.T(), http.StatusInternalServerError, rec.Code)
+}
+
+func (ts *SubscriptionTestSuite) TestSubscribeWithAlreadyExistingSubscription() {
+	conn := CreateMockedConnection()
+	ts.API.conn = conn
+	stripe:= CreateMockedStripe()
+	ts.API.stripe = stripe
+
+	user := models.NewTestUser("popa.popa@mbitcasino.com", "cus_BlEKeMb0IaNtUT")
+	plan := models.NewTestPlan("silver-month", 100)
+	t := obtainStripeVerificationToken()
+	stripeCustomer := createStripeCustomer()
+	stripeSubscription := createStripeSubscription(stripeCustomer)
+
+	conn.On("FindUserByEmail", mock.Anything).Return(user, nil)
+	conn.On("FindPlanByTitle", mock.Anything).Return(plan, nil)
+	conn.On("IsSubscriptionActive", mock.Anything, mock.Anything).Return(true)
+
+	stripe.On("Subscribe", mock.Anything, mock.Anything).Return(stripeSubscription, nil)
+	userJSON := `{"email":"alex.alex@mbitcasino.com","planId":"silver-month","token":` + `"` + t.ID + `"` + `}`
+
+	rec := ts.API.NewRequest(echo.POST, "http://localhost:8090/subscription", strings.NewReader(userJSON))
+	assert.Equal(ts.T(), http.StatusMethodNotAllowed, rec.Code)
 }
 
 //func (ts *SubscriptionTestSuite) TestUpdateSubscription() {
@@ -150,17 +207,35 @@ func (ts *SubscriptionTestSuite) TestSuccessiveSubscription() {
 //	require.Equal(ts.T(), http.StatusOK, rec.Code)
 //}
 
-func obtainStripeVerificationToken() (*stripe.Token, error) {
+func obtainStripeVerificationToken() (*stripe.Token) {
 
-	return token.New(&stripe.TokenParams{
-		Card: &stripe.CardParams{
-			Number: "4242424242424242",
-			Month:  "12",
-			Year:   "2018",
-			CVC:    "123",
-		},
-	})
+	//return token.New(&stripe.TokenParams{
+	//	Card: &stripe.CardParams{
+	//		Number: "4242424242424242",
+	//		Month:  "12",
+	//		Year:   "2018",
+	//		CVC:    "123",
+	//	},
+	//})
+	return &stripe.Token {
+		ID:"sadada",
+		Email:"alex.alex@mbitcasino.com",
+	}
 
+}
+
+func createStripeCustomer() (*stripe.Customer) {
+	return &stripe.Customer {
+		Email:"alex.alex@mbitcasino.com",
+		ID:"Customer",
+	}
+}
+
+func createStripeSubscription(customer *stripe.Customer) (*stripe.Sub) {
+	return &stripe.Sub{
+		ID:"subscription",
+		Customer:customer,
+	}
 }
 
 func TestConfirmation(t *testing.T) {
