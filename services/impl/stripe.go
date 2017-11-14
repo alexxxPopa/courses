@@ -50,3 +50,12 @@ func(client *Stripe) Subscribe(user *models.User, plan *models.Plan) (*stripe.Su
 	}
 	return stripeSub, nil
 }
+
+func(client *Stripe) CancelSubscription(subscription *models.Subscription) (*stripe.Sub, error){
+	return sub.Cancel(
+		subscription.StripeId,
+		&stripe.SubParams{
+			EndCancel: true,
+		},
+	)
+}

@@ -59,6 +59,10 @@ func (client *MockedStripe) Subscribe(user *models.User, plan *models.Plan) (*st
 	return subscription, err
 }
 
+func(client *MockedStripe) CancelSubscription(subscription *models.Subscription) (*stripe.Sub, error) {
+	return nil, nil
+}
+
 func (conn *MockedConnection) Migrate() error {
 	return nil
 }
@@ -80,7 +84,14 @@ func (conn *MockedConnection) FindUserByEmail(email string) (*models.User, error
 	return user, err
 }
 func (conn *MockedConnection) FindUserByStripeId(stripeId string) (*models.User, error) {
-	return nil, nil
+	args := conn.Called(stripeId)
+	err := args.Error(1)
+	if err != nil {
+		return nil, err
+	}
+	i:= args.Get(0)
+	user := i.(*models.User)
+	return user, nil
 }
 func (conn *MockedConnection)UpdateUser(user *models.User) error {
 	return nil
@@ -114,7 +125,16 @@ func (conn *MockedConnection) UpdateSubscription(subscription *models.Subscripti
 	return nil
 }
 func (conn *MockedConnection) FindSubscriptionByUser(user *models.User, status string) (*models.Subscription, error) {
-	return nil, nil
+	args := conn.Called(user, status)
+	err := args.Error(1)
+	if err != nil {
+		return nil, err
+	}
+
+	i:= args.Get(0)
+	subscription := i.(*models.Subscription)
+
+	return subscription, err
 }
 func (conn *MockedConnection) IsSubscriptionActive(user *models.User, plan *models.Plan) bool {
 	args := conn.Called(user, plan)
