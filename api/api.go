@@ -47,7 +47,7 @@ func Create(config *conf.Config, conn storage.Connection, stripe services.Stripe
 	e.GET("/subscriptions", api.retrieveSubscriptions)
 
 	e.GET("/", api.Index)
-	e.GET("/getCourses", api.GetCourses)
+	e.GET("/plans", api.GetPlans)
 	e.GET("/getCourses/course", api.GetCourse)
 
 	e.POST("/event", api.Event)

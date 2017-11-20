@@ -11,7 +11,7 @@ type CourseParams struct {
 	Email    string `json:"email"  query:"email"`
 }
 
-func (api *API) GetCourses(context echo.Context) error {
+func (api *API) GetPlans(context echo.Context) error {
 
 	courses, err := api.conn.GetCourses()
 	if err != nil {

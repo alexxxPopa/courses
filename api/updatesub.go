@@ -22,7 +22,7 @@ func (api *API) UpdateSubscription(context echo.Context) error {
 	nextPlan, err := api.conn.FindPlanByTitle(updateParams.Title)
 
 	if err != nil {
-		api.log.Logger.Warnf("Failed to retrieve plan: %v", nextPlan)
+		api.log.Logger.Warnf("Failed to retrieve plan: %v", updateParams.Title)
 		return context.JSON(http.StatusBadRequest, err)
 	}
 

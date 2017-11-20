@@ -79,5 +79,5 @@ func (api *API) Subscription(context echo.Context) error {
 	//}
 	//api.conn.UpdateUser(user)
 
-	return context.JSON(http.StatusCreated, stripeSubscription) //TODO maybe return something different
+	return context.JSON(http.StatusCreated, "subscription submit") //TODO maybe return something different
 }
