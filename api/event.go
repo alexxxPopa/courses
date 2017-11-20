@@ -5,6 +5,7 @@ import (
 	"github.com/stripe/stripe-go"
 	"github.com/alexxxPopa/courses/models"
 	"net/http"
+	"strconv"
 )
 
 const (
@@ -22,7 +23,7 @@ const (
 type EventItem struct {
 	userId      string
 	stripeId    string
-	planId      uint
+	planId      string
 	amount      float64
 	periodEnd   float64
 	periodStart float64
@@ -37,27 +38,31 @@ func (api *API) Event(context echo.Context) error {
 		return err
 	}
 
-	//stripeId := event.GetObjValue("customer")
-	user, err := api.conn.FindUserByStripeId("cus_BIM2uJ8MyXnBdx")
+	stripeId := event.GetObjValue("customer")
+	user, err := api.conn.FindUserByStripeId(stripeId)
 	if err != nil {
 		return err
 	}
 
 	switch event.Type {
 	case InvoiceCreated:
-		return handleInvoiceCreated(api, event.Data.Obj, 123, context)
+		return handleInvoiceCreated(api, event.Data.Obj, user.UserId, context)
 	case InvoiceFailed:
 		api.log.Logger.Debugf("Received invoice failed event for user :  %v", user)
 		subscription, err := api.conn.FindSubscriptionByUser(user, Pending)
 		if err != nil {
-			api.log.Logger.Warnf("Failed to retrieve subscription :  %v", subscription)
-			return context.JSON(http.StatusInternalServerError, err)
+			api.log.Logger.Warnf("Failed to retrieve pending subscription for user :  %v", user)
+			return context.JSON(http.StatusBadRequest, err)
 		}
 		subscription.Status = Failed
-		api.conn.UpdateSubscription(subscription)
+		if err := api.conn.UpdateSubscription(subscription); err != nil {
+			api.log.Logger.Warnf("Error updating user :  %v", err)
+			return context.JSON(http.StatusInternalServerError, err)
+		}
 		api.log.Logger.Debugf("Updated subscription to failed :  %v", subscription)
-		return context.JSON(http.StatusOK, nil)
+			return context.JSON(http.StatusOK, subscription)
 	case InvoiceSucceeded:
+		//Todo see if event is triggered when subscription expires and if it is before the active one!!!
 		api.log.Logger.Debugf("Received invoice succeeded event for user :  %v", user)
 		expiredSubscription, _ := api.conn.FindSubscriptionByUser(user, Active)
 		expiredSubscription.Status = Expired
@@ -67,20 +72,29 @@ func (api *API) Event(context echo.Context) error {
 		pendingSubscription.Status = Active
 		api.conn.UpdateSubscription(pendingSubscription)
 		api.log.Logger.Debugf("Subscription marked as Active :  %v", pendingSubscription)
-		return context.JSON(http.StatusOK, nil)
+			return context.JSON(http.StatusOK, pendingSubscription)
 	case CancelEvent:
 		api.log.Logger.Debugf("Received cancel event for user :  %v", user)
-		activeSubscription, _ := api.conn.FindSubscriptionByUser(user, Active)
+		activeSubscription, err := api.conn.FindSubscriptionByUser(user, Active)
+		if err != nil {
+			api.log.Logger.Warnf("Failed to retrieve subscription active subscription for user :  %v", user)
+			return context.JSON(http.StatusBadRequest, err)
+		}
 		activeSubscription.Status = Expired
-		api.conn.UpdateSubscription(activeSubscription)
+		if err := api.conn.UpdateSubscription(activeSubscription); err != nil {
+			api.log.Logger.Warnf("Error updating user :  %v", err)
+			return context.JSON(http.StatusInternalServerError, err)
+		}
+		return context.JSON(http.StatusOK, activeSubscription)
 	case UpdateEvent:
 		api.log.Logger.Debugf("Received update subscription event for user :  %v", user)
-		//TODO When should the updated Subscription be billed --> at the time of the switch or at the end of previous subscription?
 		activeSubscription, _ := api.conn.FindSubscriptionByUser(user, Active)
 		eventItem := getEventData(event.Data.Obj)
-		activeSubscription.Amount = eventItem.amount
-		activeSubscription.PlanId = eventItem.planId
+		activeSubscription.PeriodEnd = eventItem.periodEnd
+		cancel, _ :=  strconv.ParseBool(event.GetObjValue("cancel_at_period_end"))
+		activeSubscription.Cancel = cancel
 		api.conn.UpdateSubscription(activeSubscription)
+		return context.JSON(http.StatusOK, activeSubscription)
 	}
 
 	return context.JSON(http.StatusOK,nil)
@@ -106,7 +120,7 @@ func handleInvoiceCreated(api *API, eventData map[string]interface{}, userId uin
 		return context.JSON(http.StatusInternalServerError, err)
 	}
 
-	return context.JSON(http.StatusOK, nil)
+	return context.JSON(http.StatusCreated, subscription)
 }
 
 func getEventData(m map[string]interface{}) *EventItem {
@@ -125,8 +139,7 @@ func getEventData(m map[string]interface{}) *EventItem {
 	eventItem.periodEnd = period["end"].(float64)
 
 	plan := item["plan"].(map[string]interface{})
-	eventItem.planId = plan["id"].(uint)
+	eventItem.planId = plan["id"].(string)
 
 	return eventItem
-
 }

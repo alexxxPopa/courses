@@ -2,9 +2,6 @@ package api
 
 import (
 	"github.com/labstack/echo"
-	"github.com/stripe/stripe-go"
-	"github.com/stripe/stripe-go/sub"
-
 	"fmt"
 	"net/http"
 )
@@ -15,7 +12,6 @@ type CancelSubscriptionParams struct {
 }
 
 func (api *API) CancelSubscription(context echo.Context) error {
-	stripe.Key = api.config.STRIPE.Secret_Key
 
 	cancelParams := &CancelSubscriptionParams{}
 	if err := context.Bind(cancelParams); err != nil {
@@ -36,12 +32,7 @@ func (api *API) CancelSubscription(context echo.Context) error {
 		return context.JSON(http.StatusInternalServerError, err)
 	}
 
-	s, err := sub.Cancel(
-		subscription.StripeId,
-		&stripe.SubParams{
-			EndCancel: true,
-		},
-	)
+	s, err := api.stripe.CancelSubscription(subscription)
 	api.log.Logger.Debugf("Successfully canceled subscription %v", subscription)
 	//TODO change to status only at event
 	//subscription.Type = "Canceled"

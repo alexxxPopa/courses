@@ -6,7 +6,8 @@ import (
 	"github.com/labstack/echo"
 	"github.com/sirupsen/logrus"
 	"github.com/alexxxPopa/courses/storage"
-	"github.com/alexxxPopa/courses/storage/sql"
+	"github.com/labstack/echo/middleware"
+	"github.com/alexxxPopa/courses/services"
 )
 
 type API struct {
@@ -14,25 +15,26 @@ type API struct {
 	log    *logrus.Entry
 	config *conf.Config
 	conn   storage.Connection
+	stripe services.Stripe
 }
 
 func (api *API) ListenAndServe(hostAndPort string) error {
 	return api.echo.Start(hostAndPort)
 }
 
-func Create(config *conf.Config) *API {
+func Create(config *conf.Config, conn storage.Connection, stripe services.Stripe) *API {
 	api := &API{
 		log:    logrus.WithField("component", "api"),
 		config: config,
-	}
-	conn, err := sql.Connect(config);
-	if err != nil {
-		logrus.WithError(err).Fatal("connection to database failed")
+		conn: conn,
+		stripe: stripe,
 	}
 	//defer conn.Close()
-	api.conn = conn
+
 
 	e := echo.New()
+
+	e.Use(middleware.CORS())
 
 	e.POST("/updatePlan", api.UpdatePlan)
 	e.POST ("/createPlan", api.CreatePlan)
@@ -41,12 +43,15 @@ func Create(config *conf.Config) *API {
 	e.POST("/subscription", api.Subscription)
 	e.POST("/updateSubscription", api.UpdateSubscription)
 	e.POST("/cancelSubscription", api.CancelSubscription)
-	e.POST("/event", api.Event)
+	e.POST("/prorate", api.previewSubscriptionChange)
+
 	e.GET("/", api.Index)
 	e.GET("/getCourses", api.GetCourses)
 	e.GET("/getCourses/course", api.GetCourse)
+
+	e.POST("/event", api.Event)
+
 	api.echo = e
 
 	return api
-
 }

@@ -54,6 +54,7 @@ func (api *API) GetCourse(context echo.Context) error {
 		api.log.Logger.Infof("Subscription doesn't allow this course", subscription, plan)
 		return context.JSON(http.StatusBadRequest, "Not allowed in this course")
 	}
+
 	articles, err := api.conn.FindArticlesPerCourse(course)
 	if err != nil {
 		api.log.Logger.Warnf("Failed to retrieve articles for course: %v", course)

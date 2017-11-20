@@ -10,7 +10,7 @@ type PlanInfo struct {
 }
 
 type Plan struct {
-	PlanId  uint `json:"plan_id" gorm:"primary_key"`
+	PlanId  string `json:"plan_id" gorm:"primary_key"`
 	StripeId string `json:"stripe_id"`
 	Title string `json:"title"`
 	Amount uint64 `json:"amount"`
