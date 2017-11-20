@@ -5,6 +5,7 @@ import (
 	"github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/sub"
 	"net/http"
+	"github.com/stripe/stripe-go/plan"
 )
 
 type UpdateSubscriptionParams struct {
@@ -13,7 +14,6 @@ type UpdateSubscriptionParams struct {
 }
 
 func (api *API) UpdateSubscription(context echo.Context) error {
-	stripe.Key = api.config.STRIPE.Secret_Key
 
 	updateParams := &UpdateSubscriptionParams{}
 	if err := context.Bind(updateParams); err != nil {
@@ -22,10 +22,10 @@ func (api *API) UpdateSubscription(context echo.Context) error {
 
 	api.log.Logger.Debugf("Update subscription request received for : %v", updateParams.Email)
 
-	plan, err := api.conn.FindPlanByTitle(updateParams.Title)
+	nextPlan, err := api.conn.FindPlanByTitle(updateParams.Title)
 
 	if err != nil {
-		api.log.Logger.Warnf("Failed to retrieve plan: %v", plan)
+		api.log.Logger.Warnf("Failed to retrieve plan: %v", nextPlan)
 		return context.JSON(http.StatusInternalServerError, err)
 	}
 
@@ -41,19 +41,46 @@ func (api *API) UpdateSubscription(context echo.Context) error {
 		return context.JSON(http.StatusInternalServerError, err)
 	}
 
-	stripeSub, err := sub.Get(subscription.StripeId, nil)
-	itemId := stripeSub.Items.Values[0].ID
+	stripeSubscription, err := api.stripe.UpdateSubscription(subscription, nextPlan)
+	if err != nil {
+		api.log.Logger.Warnf("Failed to send update subscription for : %v", updateParams.Email)
+		return context.JSON(http.StatusInternalServerError, err)
+	}
 
-	s, err := sub.Update(subscription.StripeId,
-		&stripe.SubParams{
-			Items: []*stripe.SubItemsParams{
-				{
-					ID:   itemId,
-					Plan: plan.StripeId,
-				},
-			},
-		})
+	api.log.Logger.Debugf("Successfully sent updated subscription request to Stripe for %v: ", stripeSubscription)
+	return context.JSON(http.StatusOK, stripeSubscription)
+}
 
-	api.log.Logger.Debugf("Successfully sent updated subscription request to Stripe for %v: ", s)
-	return context.JSON(http.StatusOK, err)
+func (api *API) previewSubscriptionChange(context echo.Context) error {
+	updateParams := &UpdateSubscriptionParams{}
+	if err := context.Bind(updateParams); err != nil {
+		return context.JSON(http.StatusBadRequest, err)
+	}
+
+	nextPlan, err := api.conn.FindPlanByTitle(updateParams.Title)
+
+	if err != nil {
+		api.log.Logger.Warnf("Failed to retrieve plan: %v", nextPlan)
+		return context.JSON(http.StatusInternalServerError, err)
+	}
+
+	user, err := api.conn.FindUserByEmail(updateParams.Email)
+	if err != nil {
+		api.log.Logger.Warnf("Failed to retrieve user: %v", updateParams.Email)
+		return context.JSON(http.StatusInternalServerError, err)
+	}
+
+	subscription, err := api.conn.FindSubscriptionByUser(user, Active)
+	if err != nil {
+		api.log.Logger.Warnf("Failed to retrieve active subscription for : %v", updateParams.Email)
+		return context.JSON(http.StatusInternalServerError, err)
+	}
+
+	cost, err := api.stripe.PreviewProration(subscription, nextPlan)
+	if err != nil {
+		api.log.Logger.Warnf("Failed to calculate subscription change: %v, %v", updateParams.Email, updateParams.Title)
+		return context.JSON(http.StatusInternalServerError, err)
+	}
+
+	return context.JSON(http.StatusOK, cost)
 }

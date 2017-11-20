@@ -62,6 +62,17 @@ func (client *MockedStripe) Subscribe(user *models.User, plan *models.Plan) (*st
 func(client *MockedStripe) CancelSubscription(subscription *models.Subscription) (*stripe.Sub, error) {
 	return nil, nil
 }
+func (client *MockedStripe) UpdateSubscription(subscription *models.Subscription, nextPlan *models.Plan) (*stripe.Sub, error) {
+	return nil, nil
+}
+
+func (client *MockedStripe) GenerateInvoice(customerId string) error {
+	return nil
+}
+
+func (client *MockedStripe) PreviewProration(subscription *models.Subscription, nextPlan *models.Plan) (int64, error) {
+	return 0, nil
+}
 
 func (conn *MockedConnection) Migrate() error {
 	return nil

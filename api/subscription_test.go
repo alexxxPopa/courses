@@ -270,6 +270,10 @@ func (ts *SubscriptionTestSuite) TestInvalidInvoiceFailedEvent() {
 	assert.Equal(ts.T(), http.StatusBadRequest, rec.Code)
 }
 
+func (ts *SubscriptionTestSuite) TestValidUpdateSubscription() {
+
+}
+
 //func (ts *SubscriptionTestSuite) TestUpdateSubscription() {
 //
 //	userJSON := `{"email":"alex.alex@mbitcasino.com","planId":"gold-month"}`

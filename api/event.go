@@ -5,6 +5,7 @@ import (
 	"github.com/stripe/stripe-go"
 	"github.com/alexxxPopa/courses/models"
 	"net/http"
+	"strconv"
 )
 
 const (
@@ -87,11 +88,11 @@ func (api *API) Event(context echo.Context) error {
 		return context.JSON(http.StatusOK, activeSubscription)
 	case UpdateEvent:
 		api.log.Logger.Debugf("Received update subscription event for user :  %v", user)
-		//TODO When should the updated Subscription be billed --> at the time of the switch or at the end of previous subscription?
 		activeSubscription, _ := api.conn.FindSubscriptionByUser(user, Active)
 		eventItem := getEventData(event.Data.Obj)
-		activeSubscription.Amount = eventItem.amount
-		activeSubscription.PlanId = eventItem.planId
+		activeSubscription.PeriodEnd = eventItem.periodEnd
+		cancel, _ :=  strconv.ParseBool(event.GetObjValue("cancel_at_period_end"))
+		activeSubscription.Cancel = cancel
 		api.conn.UpdateSubscription(activeSubscription)
 	}
 

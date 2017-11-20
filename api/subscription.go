@@ -17,7 +17,6 @@ type SubscriptionParams struct {
 }
 
 func (api *API) Subscription(context echo.Context) error {
-	stripe.Key = api.config.STRIPE.Secret_Key
 
 	subscriptionParams := &SubscriptionParams{}
 	if err := context.Bind(subscriptionParams); err != nil {
