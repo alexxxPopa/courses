@@ -165,10 +165,10 @@ func (ts *SubscriptionTestSuite) TestCancelSubscription() {
 	user := models.NewTestUser("popa.popa@mbitcasino.com", "cus_00000000000000")
 	plan := models.NewTestPlan("silver-month", 100)
 
-	subscription := models.NewTestSubscription(user.UserId, plan, "Active")
+	subscription := models.NewTestSubscription(user.UserId, plan, Active)
 
 	conn.On("FindUserByEmail", mock.Anything).Return(user, nil)
-	conn.On("FindSubscriptionByUser", user, "Active").Return(subscription, nil)
+	conn.On("FindSubscriptionByUser", user, Active).Return(subscription, nil)
 
 	userJSON := `{"email":"alex.alex@mbitcasino.com","planId":"silver-month"}`
 	rec := ts.API.NewRequest(echo.POST, "http://localhost:8090/cancelSubscription", strings.NewReader(userJSON))
@@ -185,7 +185,7 @@ func (ts *SubscriptionTestSuite) TestCancelSubscriptionRequestForCustomerWithNoA
 	user := models.NewTestUser("popa.popa@mbitcasino.com", "cus_00000000000000")
 
 	conn.On("FindUserByEmail", mock.Anything).Return(user, nil)
-	conn.On("FindSubscriptionByUser", user, "Active").Return(nil, errors.New("no subscription found!"))
+	conn.On("FindSubscriptionByUser", user, Active).Return(nil, errors.New("no subscription found!"))
 
 	userJSON := `{"email":"alex.alex@mbitcasino.com","planId":"silver-month"}`
 	rec := ts.API.NewRequest(echo.POST, "http://localhost:8090/cancelSubscription", strings.NewReader(userJSON))
@@ -201,10 +201,10 @@ func (ts *SubscriptionTestSuite) TestCancelEvent() {
 
 	user := models.NewTestUser("popa.popa@mbitcasino.com", "cus_00000000000000")
 	plan := models.NewTestPlan("silver-month", 100)
-	subscription := models.NewTestSubscription(user.UserId, plan, "Active")
+	subscription := models.NewTestSubscription(user.UserId, plan, Active)
 
 	conn.On("FindUserByStripeId", mock.Anything).Return(user, nil)
-	conn.On("FindSubscriptionByUser", user, "Active").Return(subscription, nil)
+	conn.On("FindSubscriptionByUser", user, Active).Return(subscription, nil)
 	conn.On("UpdateSubscription", mock.Anything).Return(nil)
 
 	userJson := createEventJson("customer.subscription.deleted")
@@ -228,7 +228,7 @@ func (ts *SubscriptionTestSuite) TestInvalidCancelEventRequest() {
 	user := models.NewTestUser("popa.popa@mbitcasino.com", "cus_00000000000000")
 
 	conn.On("FindUserByStripeId", mock.Anything).Return(user, nil)
-	conn.On("FindSubscriptionByUser", user, "Active").Return(nil, errors.New("error"))
+	conn.On("FindSubscriptionByUser", user, Active).Return(nil, errors.New("error"))
 	conn.On("UpdateSubscription", mock.Anything).Return(nil)
 
 	userJson := createEventJson("customer.subscription.deleted")
@@ -246,7 +246,7 @@ func (ts *SubscriptionTestSuite) TestInvoiceFailedEvent() {
 
 	user := models.NewTestUser("popa.popa@mbitcasino.com", "cus_00000000000000")
 	plan := models.NewTestPlan("silver-month", 100)
-	subscription := models.NewTestSubscription(user.UserId, plan, "Active")
+	subscription := models.NewTestSubscription(user.UserId, plan, Active)
 
 	conn.On("FindUserByStripeId", mock.Anything).Return(user, nil)
 	conn.On("FindSubscriptionByUser", user, "Pending").Return(subscription, nil)
@@ -284,12 +284,12 @@ func (ts *SubscriptionTestSuite) TestValidSuccessPaymentEvent() {
 	user := models.NewTestUser("popa.popa@mbitcasino.com", "cus_00000000000000")
 	plan := models.NewTestPlan("silver-month", 100)
 	subscription := models.NewTestSubscription(user.UserId, plan, "Pending")
-	expiredSubscription := models.NewTestSubscription(user.UserId, plan, "Active")
+	expiredSubscription := models.NewTestSubscription(user.UserId, plan, Active)
 
 	conn.On("FindUserByStripeId", mock.Anything).Return(user, nil)
 	conn.On("UpdateSubscription", mock.Anything).Return(nil)
-	conn.On("FindSubscriptionByUser", user, "Active").Return(expiredSubscription, nil)
-	conn.On("FindSubscriptionByUser", user, "Pending").Return(subscription, nil)
+	conn.On("FindSubscriptionByUser", user, Active).Return(expiredSubscription, nil)
+	conn.On("FindSubscriptionByUser", user, Pending).Return(subscription, nil)
 
 	userJson := createEventJson("invoice.payment.succeded")
 	rec := ts.API.NewRequest(echo.POST, "http://localhost:8090/event", strings.NewReader(userJson))
@@ -300,7 +300,7 @@ func (ts *SubscriptionTestSuite) TestValidSuccessPaymentEvent() {
 	require.NoError(ts.T(), err)
 
 	assert.Equal(ts.T(), http.StatusOK, rec.Code)
-	assert.Equal(ts.T(), "Active", newSubscription.Status)
+	assert.Equal(ts.T(), Active, newSubscription.Status)
 }
 
 func(ts *SubscriptionTestSuite) TestUpdateEvent() {
@@ -311,10 +311,10 @@ func(ts *SubscriptionTestSuite) TestUpdateEvent() {
 
 	user := models.NewTestUser("popa.popa@mbitcasino.com", "cus_00000000000000")
 	plan := models.NewTestPlan("silver-month", 100)
-	subscription := models.NewTestSubscription(user.UserId, plan, "Active")
+	subscription := models.NewTestSubscription(user.UserId, plan, Active)
 
 	conn.On("FindUserByStripeId", mock.Anything).Return(user, nil)
-	conn.On("FindSubscriptionByUser", user, "Active").Return(subscription, nil)
+	conn.On("FindSubscriptionByUser", user, Active).Return(subscription, nil)
 	conn.On("UpdateSubscription", mock.Anything).Return(nil)
 
 	userJson := createEventJson("customer.subscription.updated")
@@ -331,13 +331,13 @@ func (ts *SubscriptionTestSuite) TestValidUpdateSubscription() {
 
 	plan := models.NewTestPlan("silver-month", 100)
 	user := models.NewTestUser("popa.popa@mbitcasino.com", "cus_00000000000000")
-	subscription := models.NewTestSubscription(user.UserId, plan, "Active")
+	subscription := models.NewTestSubscription(user.UserId, plan, Active)
 	stripeCustomer := createStripeCustomer()
 	stripeSubscription := createStripeSubscription(stripeCustomer)
 
 	conn.On("FindPlanByTitle", mock.Anything).Return(plan, nil)
 	conn.On("FindUserByEmail", mock.Anything).Return(user, nil)
-	conn.On("FindSubscriptionByUser", user, "Active").Return(subscription, nil)
+	conn.On("FindSubscriptionByUser", user, Active).Return(subscription, nil)
 	stripe.On("UpdateSubscription", mock.Anything, mock.Anything).Return(stripeSubscription, nil)
 
 	userJSON := `{"email":"alex.alex@mbitcasino.com","title":"silver-month"}`
@@ -353,18 +353,41 @@ func (ts *SubscriptionTestSuite) TestPreviewSubscriptionChange() {
 
 	plan := models.NewTestPlan("silver-month", 100)
 	user := models.NewTestUser("popa.popa@mbitcasino.com", "cus_00000000000000")
-	subscription := models.NewTestSubscription(user.UserId, plan, "Active")
+	subscription := models.NewTestSubscription(user.UserId, plan, Active)
 	var cost int64 = 10
 
 	conn.On("FindPlanByTitle", mock.Anything).Return(plan, nil)
 	conn.On("FindUserByEmail", mock.Anything).Return(user, nil)
-	conn.On("FindSubscriptionByUser", user, "Active").Return(subscription, nil)
+	conn.On("FindSubscriptionByUser", user, Active).Return(subscription, nil)
 	stripe.On("PreviewProrate", subscription, plan).Return(cost, nil)
 
 	userJSON := `{"email":"alex.alex@mbitcasino.com","title":"silver-month"}`
 	rec := ts.API.NewRequest(echo.POST, "http://localhost:8090/prorate", strings.NewReader(userJSON))
 	
 	assert.Equal(ts.T(), http.StatusOK, rec.Code)
+}
+
+func (ts *SubscriptionTestSuite) TestRetrieveSubscriptions() {
+	conn := CreateMockedConnection()
+	ts.API.conn = conn
+	stripe:= CreateMockedStripe()
+	ts.API.stripe = stripe
+
+	plan := models.NewTestPlan("silver-month", 100)
+	user := models.NewTestUser("popa.popa@mbitcasino.com", "cus_00000000000000")
+	expiredSubscription := models.NewTestSubscription(user.UserId, plan, Expired)
+	activeSubscription := models.NewTestSubscription(user.UserId, plan, Active)
+	subscriptions := [] *models.Subscription{expiredSubscription, activeSubscription}
+	var retrieveSubscriptions []*models.Subscription
+	conn.On("FindUserByEmail", mock.Anything).Return(user, nil)
+	conn.On("RetrieveSubscriptions", user).Return(subscriptions, nil)
+
+	rec := ts.API.NewRequest(echo.GET, "http://localhost:8090/subscriptions?email=popa.popa@mbitcasino.com", nil)
+	err := json.NewDecoder(rec.Body).Decode(&retrieveSubscriptions)
+	require.NoError(ts.T(), err)
+
+	assert.Equal(ts.T(), http.StatusOK, rec.Code)
+	assert.Equal(ts.T(), len(retrieveSubscriptions), 2)
 }
 
 //
