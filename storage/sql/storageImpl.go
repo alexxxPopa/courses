@@ -68,7 +68,7 @@ func (conn *Connection) FindPlanByTitle(title string) (*models.Plan, error) {
 }
 
 func (conn *Connection) FindPlans() ([]*models.PlanInfo, error) {
-	plans := []*models.PlanInfo{}
+	var plans []*models.PlanInfo
 
 	rows, _ := conn.db.Model(&models.Plan{}).
 		Select("title, amount, currency, interval").Rows()
@@ -122,10 +122,14 @@ func (conn *Connection) CreateSubscription(subscription *models.Subscription) er
 
 func (conn *Connection) FindSubscriptionByUser(user *models.User, status string) (*models.Subscription, error) {
 	s := &models.Subscription{}
-	rows, _ := conn.db.Model(&models.Subscription{}).Where("user_id =?", user.UserId).Rows()
+	rows, err := conn.db.Model(&models.Subscription{}).Where("user_id =?", user.UserId).Rows()
+	if err != nil {
+		return nil, err
+	}
 	defer rows.Close()
 	for rows.Next() {
-		err := rows.Scan(&s.SubscriptionId, &s.UserId, &s.PlanId, &s.StripeId, &s.Status, &s.Amount, &s.Currency, &s.PeriodStart, &s.PeriodEnd, &s.CreatedAt, &s.UpdatedAt)
+		err := rows.Scan(&s.SubscriptionId, &s.UserId, &s.PlanId, &s.StripeId, &s.Status, &s.Amount, &s.Currency, &s.Cancel,
+			&s.PeriodStart, &s.PeriodEnd, &s.CreatedAt, &s.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -153,6 +157,27 @@ func (conn *Connection) IsSubscriptionActive(user *models.User, plan *models.Pla
 		return false
 	}
 	return true
+}
+
+func (conn *Connection) RetrieveSubscriptions(user *models.User) ([]*models.Subscription, error) {
+	var subscriptions []*models.Subscription
+
+	rows, err := conn.db.Model(&models.Subscription{}).Where("user_id =?", user.UserId).Rows()
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		s := &models.Subscription{}
+		err := rows.Scan(&s.SubscriptionId, &s.UserId, &s.PlanId, &s.StripeId, &s.Status, &s.Amount, &s.Currency, &s.Cancel,
+			&s.PeriodStart, &s.PeriodEnd, &s.CreatedAt, &s.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+		subscriptions = append(subscriptions, s)
+	}
+	return subscriptions, nil
 }
 
 func (conn *Connection) CreateCourse(course *models.Course) error {

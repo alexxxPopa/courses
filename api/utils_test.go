@@ -163,7 +163,7 @@ func (conn *MockedConnection) FindSubscriptionByUser(user *models.User, status s
 	i:= args.Get(0)
 	subscription := i.(*models.Subscription)
 
-	return subscription, err
+	return subscription, nil
 }
 func (conn *MockedConnection) IsSubscriptionActive(user *models.User, plan *models.Plan) bool {
 	args := conn.Called(user, plan)
@@ -189,4 +189,16 @@ func (conn *MockedConnection) CreateArticle(article *models.Article) error {
 }
 func (conn *MockedConnection) FindArticlesPerCourse(course *models.Course) ([]models.Article, error) {
 	return nil, nil
+}
+func (conn *MockedConnection) RetrieveSubscriptions(user *models.User) ([]*models.Subscription, error) {
+	args := conn.Called(user)
+	err := args.Error(1)
+	if err != nil {
+		return nil, err
+	}
+
+	i:= args.Get(0)
+	subscriptions := i.([]*models.Subscription)
+
+	return subscriptions, nil
 }

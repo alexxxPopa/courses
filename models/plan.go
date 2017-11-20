@@ -26,6 +26,7 @@ type Plan struct {
 //use for Testing
 func NewTestPlan(title string, amount uint64) *Plan {
 	return &Plan {
+		PlanId:title,
 		Title:title,
 		Amount:amount,
 		Currency: "usd",

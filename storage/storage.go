@@ -20,6 +20,7 @@ type Connection interface {
 	UpdateSubscription(subscription *models.Subscription) error
 	FindSubscriptionByUser(user *models.User, status string) (*models.Subscription, error)
 	IsSubscriptionActive(user *models.User, plan *models.Plan) bool
+	RetrieveSubscriptions(user *models.User) ([]*models.Subscription, error)
 	CreateCourse(course *models.Course) error
 	FindCourseById(courseId uint) (*models.Course, error)
 	GetCourses() ([]models.Course, error)

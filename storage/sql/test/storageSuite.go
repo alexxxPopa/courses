@@ -15,6 +15,8 @@ type StorageTestSuite struct {
 }
 
 const CANCEL = "Cancel"
+const Active = "Active"
+const Expired = "Expired"
 
 func (s *StorageTestSuite) SetupTest() {
 	s.BeforeTest()
@@ -112,11 +114,11 @@ func (s *StorageTestSuite) TestFindSubscriptionByUser() {
 
 	plan := s.createPlan("gold", 100)
 
-	subscription := models.NewTestSubscription(user.UserId, plan)
+	subscription := models.NewTestSubscription(user.UserId, plan, Active)
 	err = s.Conn.CreateSubscription(subscription)
 	require.NoError(s.T(), err)
 
-	sub, err := s.Conn.FindSubscriptionByUser(user, "Active")
+	sub, err := s.Conn.FindSubscriptionByUser(user, Active)
 	require.NoError(s.T(), err)
 
 	assert.Equal(s.T(), user.UserId, sub.UserId)
@@ -131,24 +133,24 @@ func (s *StorageTestSuite) TestUpdateSubscription() {
 
 	plan := s.createPlan("gold", 100)
 
-	subscription := models.NewTestSubscription(user.UserId, plan)
+	subscription := models.NewTestSubscription(user.UserId, plan, Active)
 	err = s.Conn.CreateSubscription(subscription)
 	require.NoError(s.T(), err)
 
-	sub, err := s.Conn.FindSubscriptionByUser(user, "Active")
+	sub, err := s.Conn.FindSubscriptionByUser(user, Active)
 	require.NoError(s.T(), err)
 
-	sub.Status = "Expired"
+	sub.Status = Expired
 	sub.Amount = 1
 	s.Conn.UpdateSubscription(sub)
 	require.NoError(s.T(), err)
 
-	m, err := s.Conn.FindSubscriptionByUser(user, "Active")
+	m, err := s.Conn.FindSubscriptionByUser(user, Active)
 	require.NoError(s.T(), err)
 
 	assert.Nil(s.T(), m)
 
-	updateSub, err := s.Conn.FindSubscriptionByUser(user, "Expired")
+	updateSub, err := s.Conn.FindSubscriptionByUser(user, Expired)
 	require.NoError(s.T(), err)
 	assert.Equal(s.T(), sub.Amount, updateSub.Amount)
 }
@@ -176,7 +178,7 @@ func (s *StorageTestSuite) TestIsActiveSubscription() {
 
 	plan := s.createPlan("gold", 100)
 
-	subscription := models.NewTestSubscription(user.UserId, plan)
+	subscription := models.NewTestSubscription(user.UserId, plan, Active)
 	err = s.Conn.CreateSubscription(subscription)
 	require.NoError(s.T(), err)
 
@@ -194,6 +196,30 @@ func (s *StorageTestSuite) TestFindCategoryById() {
 	require.NoError(s.T(), err)
 
 	assert.Equal(s.T(), "first", c.Title)
+}
+
+func (s *StorageTestSuite) TestRetrieveSubscriptionsForUser() {
+	user := models.NewTestUser("alex", "123")
+	err := s.Conn.CreateUser(user)
+	require.NoError(s.T(), err)
+
+	goldPlan := s.createPlan("gold", 100)
+	silverPlan := s.createPlan("silver", 50)
+
+	activeSubscription := models.NewTestSubscription(user.UserId, goldPlan, Active)
+	expiredSubscription := models.NewTestSubscription(user.UserId, goldPlan, Expired)
+	canceledSubscription := models.NewTestSubscription(user.UserId, silverPlan, CANCEL)
+
+	err = s.Conn.CreateSubscription(canceledSubscription)
+	require.NoError(s.T(), err)
+	err = s.Conn.CreateSubscription(expiredSubscription)
+	require.NoError(s.T(), err)
+	err = s.Conn.CreateSubscription(activeSubscription)
+	require.NoError(s.T(), err)
+
+	subscriptions, err := s.Conn.RetrieveSubscriptions(user)
+	require.NoError(s.T(), err)
+	assert.Equal(s.T(), 3, len(subscriptions))
 }
 
 //func (s *StorageTestSuite) TestFindArticlesPerCourse() {
