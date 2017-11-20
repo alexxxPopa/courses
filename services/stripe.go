@@ -15,6 +15,6 @@ type Stripe interface {
 	//used for immediate payment or payout after update
 	GenerateInvoice(customerId string) error
 	//used to preview the cost changes in a subscription change
-	PreviewProration(subscription *models.Subscription, nextPlan *models.Plan) (int64, error)
+	PreviewProrate(subscription *models.Subscription, nextPlan *models.Plan) (int64, error)
 
 }

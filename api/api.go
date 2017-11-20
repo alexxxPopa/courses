@@ -43,7 +43,7 @@ func Create(config *conf.Config, conn storage.Connection, stripe services.Stripe
 	e.POST("/subscription", api.Subscription)
 	e.POST("/updateSubscription", api.UpdateSubscription)
 	e.POST("/cancelSubscription", api.CancelSubscription)
-
+	e.POST("/prorate", api.previewSubscriptionChange)
 
 	e.GET("/", api.Index)
 	e.GET("/getCourses", api.GetCourses)

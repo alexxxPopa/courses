@@ -72,7 +72,7 @@ func (api *API) Event(context echo.Context) error {
 		pendingSubscription.Status = Active
 		api.conn.UpdateSubscription(pendingSubscription)
 		api.log.Logger.Debugf("Subscription marked as Active :  %v", pendingSubscription)
-			return context.JSON(http.StatusOK, nil)
+			return context.JSON(http.StatusOK, pendingSubscription)
 	case CancelEvent:
 		api.log.Logger.Debugf("Received cancel event for user :  %v", user)
 		activeSubscription, err := api.conn.FindSubscriptionByUser(user, Active)
@@ -94,6 +94,7 @@ func (api *API) Event(context echo.Context) error {
 		cancel, _ :=  strconv.ParseBool(event.GetObjValue("cancel_at_period_end"))
 		activeSubscription.Cancel = cancel
 		api.conn.UpdateSubscription(activeSubscription)
+		return context.JSON(http.StatusOK, activeSubscription)
 	}
 
 	return context.JSON(http.StatusOK,nil)

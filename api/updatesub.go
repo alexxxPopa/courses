@@ -2,10 +2,7 @@ package api
 
 import (
 	"github.com/labstack/echo"
-	"github.com/stripe/stripe-go"
-	"github.com/stripe/stripe-go/sub"
 	"net/http"
-	"github.com/stripe/stripe-go/plan"
 )
 
 type UpdateSubscriptionParams struct {
@@ -26,13 +23,13 @@ func (api *API) UpdateSubscription(context echo.Context) error {
 
 	if err != nil {
 		api.log.Logger.Warnf("Failed to retrieve plan: %v", nextPlan)
-		return context.JSON(http.StatusInternalServerError, err)
+		return context.JSON(http.StatusBadRequest, err)
 	}
 
 	user, err := api.conn.FindUserByEmail(updateParams.Email)
 	if err != nil {
 		api.log.Logger.Warnf("Failed to retrieve user: %v", updateParams.Email)
-		return context.JSON(http.StatusInternalServerError, err)
+		return context.JSON(http.StatusBadRequest, err)
 	}
 
 	subscription, err := api.conn.FindSubscriptionByUser(user, Active)
@@ -76,7 +73,7 @@ func (api *API) previewSubscriptionChange(context echo.Context) error {
 		return context.JSON(http.StatusInternalServerError, err)
 	}
 
-	cost, err := api.stripe.PreviewProration(subscription, nextPlan)
+	cost, err := api.stripe.PreviewProrate(subscription, nextPlan)
 	if err != nil {
 		api.log.Logger.Warnf("Failed to calculate subscription change: %v, %v", updateParams.Email, updateParams.Title)
 		return context.JSON(http.StatusInternalServerError, err)

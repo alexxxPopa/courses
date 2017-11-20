@@ -3,7 +3,6 @@ package api
 import (
 	"github.com/labstack/echo"
 	"github.com/alexxxPopa/courses/models"
-	"github.com/stripe/stripe-go"
 	"net/http"
 	//	"github.com/stripe/stripe-go/charge"
 	"fmt"

@@ -63,15 +63,30 @@ func(client *MockedStripe) CancelSubscription(subscription *models.Subscription)
 	return nil, nil
 }
 func (client *MockedStripe) UpdateSubscription(subscription *models.Subscription, nextPlan *models.Plan) (*stripe.Sub, error) {
-	return nil, nil
+	args := client.Called(subscription, nextPlan)
+	err := args.Error(1)
+	if err != nil {
+		return nil, err
+	}
+	i:= args.Get(0)
+	sub := i.(*stripe.Sub)
+
+	return sub, err
 }
 
 func (client *MockedStripe) GenerateInvoice(customerId string) error {
 	return nil
 }
 
-func (client *MockedStripe) PreviewProration(subscription *models.Subscription, nextPlan *models.Plan) (int64, error) {
-	return 0, nil
+func (client *MockedStripe) PreviewProrate(subscription *models.Subscription, nextPlan *models.Plan) (int64, error) {
+	args := client.Called(subscription, nextPlan)
+	err := args.Error(1)
+	if err != nil {
+		return 0, err
+	}
+	i := args.Get(0)
+	cost := i.(int64)
+	return cost, nil
 }
 
 func (conn *MockedConnection) Migrate() error {
@@ -130,10 +145,13 @@ func (conn *MockedConnection) FindPlanByTitle(title string) (*models.Plan, error
 	return plan, err
 }
 func (conn *MockedConnection) CreateSubscription(subscription *models.Subscription) error {
-	return nil
+	args := conn.Called(subscription)
+	return args.Error(0)
 }
 func (conn *MockedConnection) UpdateSubscription(subscription *models.Subscription) error {
-	return nil
+	args := conn.Called(subscription)
+	err := args.Error(0)
+	return err
 }
 func (conn *MockedConnection) FindSubscriptionByUser(user *models.User, status string) (*models.Subscription, error) {
 	args := conn.Called(user, status)

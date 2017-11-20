@@ -93,7 +93,7 @@ func (client *Stripe) GenerateInvoice(customerId string) error {
 	return err
 }
 
-func (client *Stripe) PreviewProration(subscription *models.Subscription, nextPlan *models.Plan) (int64, error) {
+func (client *Stripe) PreviewProrate(subscription *models.Subscription, nextPlan *models.Plan) (int64, error) {
 	prorationDate := time.Now().Unix()
 	stripeSub, err := sub.Get(subscription.StripeId, nil)
 	if err != nil {
